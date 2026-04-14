@@ -225,6 +225,7 @@ d2a skill-state <skill-name> ...
   .codex/skills/d2a-mini-design/SKILL.md
   .codex/skills/d2a-mini-build/SKILL.md
   .codex/skills/d2a-mini-test/SKILL.md
+  .codex/skills/d2a-step/SKILL.md
   .codex/skills/d2a-report-build/SKILL.md
   .codex/skills/d2a-status/SKILL.md
   .codex/skills/d2a-challenge-architecture/SKILL.md
@@ -253,11 +254,17 @@ d2a skill-state <skill-name> ...
 - `d2a-mini-design`: mini implementation 设计入口
 - `d2a-mini-build`: mini implementation 实现入口
 - `d2a-mini-test`: mini integration testing 入口
+- `d2a-step`: 状态驱动推进入口，自动选择下一子 skill，并支持会话中断后的断点续接
 - `d2a-report-build`: report 汇总与展示入口
 - `d2a-status`: 当前 `.d2a` 工作流状态查看入口
 - `d2a-challenge-architecture`: 分析完成后的架构质疑阶段入口，负责记录挑战而不默认改写架构结论
 
 这些 skills 只是第一版骨架，后续会继续扩展为完整套装。
+
+推荐默认使用方式：
+
+1. 在 Codex 中先调用 `$d2a-step`
+2. 每轮回答后继续调用 `$d2a-step`
 
 当前其中这两个 skill 已作为第一批双阶段 skill 样板，明确区分：
 

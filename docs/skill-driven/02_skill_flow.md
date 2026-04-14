@@ -5,22 +5,20 @@
 After `d2a init <repo-dir>`, the intended flow is:
 
 1. User enters Codex in the target repository root.
-2. User invokes an analysis skill.
-3. The analysis skill calls `d2a analyze` if the repository has not yet been prepared for that target.
-4. The analysis skill fills `docs/architecture/*.md`.
-5. User invokes a mini-implementation skill.
-6. The implementation skill calls `d2a derive-mini` if implementation task files are not yet prepared.
-7. The implementation skill fills `docs/implementation/*.md` and later writes `src/`.
-8. User invokes a testing skill.
-9. The testing skill calls `d2a test-mini` if the tests stage is not yet prepared.
-10. The testing skill fills `tests/*` and later writes runnable tests.
-11. User invokes a report skill.
-12. The report skill calls `d2a report` if report data is stale or missing.
-13. The report skill fills or refines the final report output.
+2. User invokes `$d2a-step`.
+3. `d2a-step` recovers current state and routes to the correct sub-skill.
+4. The routed skill executes one turn and persists `d2a skill-state`.
+5. The routed skill ends with `继续请使用 $d2a-step`.
+6. User invokes `$d2a-step` again to continue.
+7. The loop repeats until `report-ready`.
 
 ## Recommended Skill Entry Points
 
-### Analysis
+### Default
+
+- `$d2a-step`
+
+### Analysis (sub-skills routed by `d2a-step`)
 
 - `$d2a-architecture-walkthrough`
 - `$d2a-project-scope`
@@ -30,23 +28,17 @@ After `d2a init <repo-dir>`, the intended flow is:
 - `$d2a-module-view`
 - `$d2a-tradeoff-view`
 
-### Implementation
-
-Planned next skills:
+### Implementation (sub-skills routed by `d2a-step`)
 
 - `$d2a-mini-scope`
 - `$d2a-mini-design`
 - `$d2a-mini-build`
 
-### Testing
-
-Planned next skills:
+### Testing (sub-skills routed by `d2a-step`)
 
 - `$d2a-mini-test`
 
-### Reporting
-
-Planned next skills:
+### Reporting (sub-skills routed by `d2a-step`)
 
 - `$d2a-report-build`
 
@@ -60,3 +52,5 @@ Planned next skills:
 ## Success Condition
 
 The user should feel that they are working through a set of skills, while `d2a` commands quietly keep repository state in the right structural stage underneath.
+
+The user should not need to manually choose among many sub-skills in normal operation.

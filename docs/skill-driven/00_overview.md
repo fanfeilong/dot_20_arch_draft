@@ -8,10 +8,11 @@ After installation and `d2a init`, the user should no longer drive the workflow 
 
 Instead:
 
-1. The user invokes a `d2a-*` skill in Codex.
+1. The user invokes `$d2a-step` in Codex.
 2. The skill decides what stage the lab is in.
-3. The skill calls `d2a` commands as internal tools when needed.
-4. The skill writes or updates the right files in `docs/`, `src/`, `tests/`, and `report/`.
+3. `d2a-step` routes to the correct sub-skill for that stage.
+4. The sub-skill calls `d2a` commands as internal tools when needed.
+5. The sub-skill writes or updates the right files in `docs/`, `src/`, `tests/`, and `report/`.
 
 ## Interaction Model
 
@@ -30,9 +31,8 @@ After the lab exists, the external entry should be skills, not commands.
 
 The user should say things like:
 
-- "Use `$d2a-architecture-walkthrough` on `/path/to/target-repo` in `lab/`."
-- "Use `$d2a-mini-design` to derive the mini version from the current architecture docs."
-- "Use `$d2a-mini-test` to prepare the first integration tests."
+- "Use `$d2a-step`."
+- "继续请使用 `$d2a-step`."
 
 The skill may then call:
 
@@ -42,6 +42,12 @@ The skill may then call:
 - `d2a report`
 
 but those commands are internal stage tools, not the primary user-facing flow.
+
+## Resume Rule
+
+After an AI coding tool session is interrupted or restarted, the user should re-enter with `$d2a-step`.
+
+`d2a-step` should recover from `.d2a/state.json` and continue from the exact pending stage/phase/question progress.
 
 ## Core Principle
 

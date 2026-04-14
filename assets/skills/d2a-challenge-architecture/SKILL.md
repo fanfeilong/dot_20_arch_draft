@@ -103,6 +103,13 @@ Read these files before starting:
 
    `d2a skill-state d2a-challenge-architecture --status completed --stage architecture-challenge-complete --phase challenge-dialogue --question-index 6 --question-total 6 --next-step "Proceed to d2a-mini-scope unless a review is required." --next-skill "d2a-mini-scope" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Completed architecture challenge phase."`
 
+## Turn-End Continuation Rule
+
+1. At the end of every learner-facing turn, call `d2a skill-state` to persist the latest phase and progress before finishing the reply.
+2. If the current phase is still in progress, record `--status progress` with updated question or challenge index.
+3. End the reply with: `继续请使用 $d2a-step`.
+4. If the current phase just completed, still emit the same continuation line so the learner can resume from the next state via `d2a-step`.
+
 ## Output
 
 - Challenge rounds

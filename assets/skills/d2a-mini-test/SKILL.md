@@ -82,6 +82,13 @@ If the active repository is unknown, stop and ask the user which repository shou
 
     `d2a skill-state d2a-mini-test --status completed --stage testing-complete --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-report-build." --next-skill "d2a-report-build" --next-file ".d2a/report/index.md" --summary "Completed mini-test confirmation questions."`
 
+## Turn-End Continuation Rule
+
+1. At the end of every learner-facing turn, call `d2a skill-state` to persist the latest phase and progress before finishing the reply.
+2. If the current phase is still in progress, record `--status progress` with updated question or challenge index.
+3. End the reply with: `继续请使用 $d2a-step`.
+4. If the current phase just completed, still emit the same continuation line so the learner can resume from the next state via `d2a-step`.
+
 ## Output
 
 - First integration test

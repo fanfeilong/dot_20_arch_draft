@@ -77,3 +77,10 @@ This includes:
 - phase switches
 - question progress
 - final comprehension evaluation
+
+## Continuation Rule
+
+At the end of every learner-facing turn, the skill should:
+
+1. persist turn progress via `d2a skill-state`
+2. instruct the learner to continue with `$d2a-step`

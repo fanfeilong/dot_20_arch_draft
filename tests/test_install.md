@@ -69,6 +69,7 @@ find build/install-smoke/project -type f | sort
 - `.codex/skills/d2a-mini-design/SKILL.md`
 - `.codex/skills/d2a-mini-build/SKILL.md`
 - `.codex/skills/d2a-mini-test/SKILL.md`
+- `.codex/skills/d2a-step/SKILL.md`
 - `.codex/skills/d2a-report-build/SKILL.md`
 - `.codex/skills/d2a-status/SKILL.md`
 - `.codex/skills/d2a-challenge-architecture/SKILL.md`

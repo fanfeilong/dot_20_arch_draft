@@ -23,6 +23,13 @@ Assemble the current repository d2a workspace into a report-ready package for lo
 10. Refine `.d2a/report/index.md` or future report assets without changing the stage contract.
 11. When this pass is complete, call `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Review the local report or run d2a serve." --summary "Completed report-build work."`.
 
+## Turn-End Continuation Rule
+
+1. At the end of every learner-facing turn, call `d2a skill-state` to persist the latest phase and progress before finishing the reply.
+2. If the current phase is still in progress, record `--status progress` with updated question or challenge index.
+3. End the reply with: `继续请使用 $d2a-step`.
+4. If the current phase just completed, still emit the same continuation line so the learner can resume from the next state via `d2a-step`.
+
 ## Output
 
 - Report summary

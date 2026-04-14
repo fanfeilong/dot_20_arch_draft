@@ -32,6 +32,10 @@ After each question turn, the system should preserve:
 
 This information should be recoverable from `.d2a/state.json` and recent history.
 
+Each learner-facing turn should end with a continuation hint:
+
+`继续请使用 $d2a-step`
+
 ## Phase-End Rule
 
 After the final question in a confirmation set:

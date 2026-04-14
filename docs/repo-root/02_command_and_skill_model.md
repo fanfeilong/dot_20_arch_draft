@@ -14,12 +14,20 @@ After that, the user enters Codex and uses skills as the main control surface.
 
 Typical examples:
 
+- `$d2a-step`
 - `$d2a-architecture-walkthrough`
 - `$d2a-mini-scope`
 - `$d2a-mini-design`
 - `$d2a-mini-build`
 - `$d2a-mini-test`
 - `$d2a-report-build`
+
+Recommended default entry:
+
+1. start with `$d2a-step`
+2. after each answer turn, continue with `$d2a-step`
+
+This keeps user control simple while state-based routing chooses the right sub-skill.
 
 ## Command Role
 
@@ -52,6 +60,17 @@ The `.d2a/` directory is not a skill-discovery directory. It is only the d2a wor
 - reporting skills may call `d2a report`
 - serving/report-preview skills may call `d2a serve`
 - status skills may call `d2a status`
+
+## Step-Orchestrator Rule
+
+`d2a-step` is the state-driven orchestrator skill.
+
+It should:
+
+1. recover stage/phase/question progress from `.d2a/state.json`
+2. route to the correct next `d2a-*` skill
+3. support session-resume continuation after AI tool restarts
+4. require sub-skills to persist `d2a skill-state` on every learner-facing turn
 
 ## Default Resolution Rule
 
