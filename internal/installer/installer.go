@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/fanfeilong/dot_20_arch_draft/assets"
 )
@@ -31,6 +32,10 @@ func Install(targetDir string) (string, error) {
 
 	skills, err := loadSkills()
 	if err != nil {
+		return "", err
+	}
+
+	if err := installLab(targetDir); err != nil {
 		return "", err
 	}
 
@@ -99,4 +104,39 @@ func loadSkills() (map[string][]byte, error) {
 	}
 
 	return skills, nil
+}
+
+func installLab(targetDir string) error {
+	return fs.WalkDir(assets.Files, "lab", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return fmt.Errorf("walk embedded d2a assets: %w", err)
+		}
+		if path == "lab" {
+			return nil
+		}
+
+		rel := strings.TrimPrefix(path, "lab/")
+		targetPath := filepath.Join(targetDir, ".d2a", filepath.FromSlash(rel))
+
+		if d.IsDir() {
+			if err := os.MkdirAll(targetPath, 0o755); err != nil {
+				return fmt.Errorf("create d2a dir %s: %w", targetPath, err)
+			}
+			return nil
+		}
+
+		content, err := fs.ReadFile(assets.Files, path)
+		if err != nil {
+			return fmt.Errorf("read embedded d2a file %s: %w", path, err)
+		}
+
+		if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
+			return fmt.Errorf("create d2a parent dir %s: %w", filepath.Dir(targetPath), err)
+		}
+		if err := os.WriteFile(targetPath, content, 0o644); err != nil {
+			return fmt.Errorf("write d2a file %s: %w", targetPath, err)
+		}
+
+		return nil
+	})
 }
