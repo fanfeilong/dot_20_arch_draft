@@ -43,19 +43,33 @@ d2a version
 curl -fsSL https://raw.githubusercontent.com/fanfeilong/dot_20_arch_draft/main/install.sh | sh
 ```
 
+Windows PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/fanfeilong/dot_20_arch_draft/main/install.ps1 | iex
+```
+
 也可以安装指定版本：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/fanfeilong/dot_20_arch_draft/main/install.sh | D2A_VERSION=v0.0.1 sh
 ```
 
+```powershell
+$env:D2A_VERSION="v0.0.1"
+irm https://raw.githubusercontent.com/fanfeilong/dot_20_arch_draft/main/install.ps1 | iex
+```
+
 默认安装到 `/usr/local/bin/d2a`。
+
+Windows 默认安装到 `$env:LOCALAPPDATA\d2a\bin\d2a.exe`。
 
 可选环境变量：
 
 - `D2A_VERSION`: 指定 Release 版本，默认 `latest`
 - `D2A_INSTALL_DIR`: 指定安装目录，默认 `/usr/local/bin`
 - `D2A_REPO`: 指定 GitHub 仓库，默认 `fanfeilong/dot_20_arch_draft`
+- `D2A_BASE_URL`: 指定 Release 资产下载基址，主要用于 CI 或自托管镜像测试
 
 ## init Command
 
@@ -121,6 +135,6 @@ curl -fsSL https://raw.githubusercontent.com/fanfeilong/dot_20_arch_draft/main/i
 当推送形如 `v0.0.1` 的 tag 时，workflow 会：
 
 - 运行测试
-- 构建 macOS 和 Linux 二进制
+- 构建 macOS、Linux 和 Windows 二进制
 - 打包为 Release 资产
 - 创建对应的 GitHub Release

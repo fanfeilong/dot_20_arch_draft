@@ -32,7 +32,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME:-dev}"
           mkdir -p dist
 
-          build() {
+          build_tar() {
             local goos="$1"
             local goarch="$2"
             local out_dir="dist/${goos}_${goarch}"
@@ -46,12 +46,28 @@ jobs:
             tar -C "${out_dir}" -czf "dist/${asset}" d2a
           }
 
-          build darwin amd64
-          build darwin arm64
-          build linux amd64
-          build linux arm64
+          build_zip() {
+            local goos="$1"
+            local goarch="$2"
+            local out_dir="dist/${goos}_${goarch}"
+            local asset="d2a_${goos}_${goarch}.zip"
 
-          (cd dist && sha256sum d2a_*.tar.gz > checksums.txt)
+            mkdir -p "${out_dir}"
+            GOOS="${goos}" GOARCH="${goarch}" CGO_ENABLED=0 \
+              go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" \
+              -o "${out_dir}/d2a.exe" ./cmd/d2a
+
+            (cd "${out_dir}" && zip -q "../../dist/${asset}" d2a.exe)
+          }
+
+          build_tar darwin amd64
+          build_tar darwin arm64
+          build_tar linux amd64
+          build_tar linux arm64
+          build_zip windows amd64
+          build_zip windows arm64
+
+          (cd dist && sha256sum d2a_*.tar.gz d2a_*.zip > checksums.txt)
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
@@ -61,4 +77,6 @@ jobs:
             dist/d2a_darwin_arm64.tar.gz
             dist/d2a_linux_amd64.tar.gz
             dist/d2a_linux_arm64.tar.gz
+            dist/d2a_windows_amd64.zip
+            dist/d2a_windows_arm64.zip
             dist/checksums.txt

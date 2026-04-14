@@ -5,6 +5,7 @@ set -eu
 REPO="${D2A_REPO:-fanfeilong/dot_20_arch_draft}"
 VERSION="${D2A_VERSION:-latest}"
 INSTALL_DIR="${D2A_INSTALL_DIR:-/usr/local/bin}"
+BASE_URL_OVERRIDE="${D2A_BASE_URL:-}"
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || {
@@ -36,6 +37,11 @@ detect_arch() {
 }
 
 release_base() {
+	if [ -n "$BASE_URL_OVERRIDE" ]; then
+		echo "$BASE_URL_OVERRIDE"
+		return
+	fi
+
 	if [ "$VERSION" = "latest" ]; then
 		echo "https://github.com/$REPO/releases/latest/download"
 	else
