@@ -1,62 +1,92 @@
 # dot_20_arch_draft
 
-一个将“开源项目架构拆解”落地为可复用流程与产物的工具仓库。
+`dot_20_arch_draft` 的目标不是只讨论“如何拆解开源项目架构”，而是最终交付一套可直接安装的 `d2a` skills 套装。
 
-## 目标
+这个仓库将使用 Go 开发并发布为一个 CLI 程序：`d2a`。
 
-面向学生和 IT 工程师，在约一小时内，使用一组极小、极简的原子 LLM 提问与调整步骤，逐步拆解一个目标开源项目的架构内核，并把结果沉淀为可复用的文档资产。
+## What Is d2a
 
-这个仓库的重点不是只讨论方法，而是把方法、提示流程、输出规范和协作方式一起落地，最终形成一个可执行、可复用、可演示的工具仓库。
+`d2a` 是一个面向开源项目架构拆解的 skills 分发工具。
 
-## 核心思路
+它的核心目标是降低获取门槛：
 
-针对一个开源项目：
+- 用户不需要手动拷贝 prompt 或模板
+- 用户不需要自己维护多套 agent 配置
+- 用户只需要执行一个初始化命令，就可以把内置的 `d2a-*` skills 安装到目标目录
 
-1. 选择一个明确的分析目标。
-2. 使用一组原子化问题逐步逼近架构核心。
-3. 在每一步根据结果做最小调整，而不是一次性生成大而全说明。
-4. 将输出控制为极小、极简、可继续递归展开的结构化文档。
-5. 将最终结果沉淀到 `docs/` 目录下，形成有层次编号的目录与叶子节点 Markdown 文件。
+## Product Goal
 
-## 仓库产出
+通过 `d2a`，用户可以在一个项目目录中快速得到一套用于“架构拆解”的内置 skills，并在 Codex、Claude、Cursor、OpenCode、Trae、NeoCode 等目录约定下复用。
 
-- 一个可复用的架构拆解流程。
-- 一组可持续迭代的 LLM 原子提问模板。
-- 一套极简输出规范，避免冗长和失焦。
-- 一批在 `docs/` 下沉淀的真实项目拆解样例。
+这些 skills 最终服务于一个统一目标：
 
-## 输出原则
+- 拿一个开源项目
+- 用一组原子化、极简的提问步骤逐步拆解其架构
+- 将输出控制得足够小
+- 在大约一小时内，向学生和 IT 工程师展示如何理解一个项目的架构内核
 
-- 极小：每次只回答一个足够小的问题。
-- 极简：只保留理解架构所必需的信息。
-- 分层：目录和文件编号体现结构层次。
-- 可追踪：每个叶子节点文档只承载单一主题。
-- 可复用：流程可迁移到不同开源项目。
+## CLI
 
-## 目录约定
+当前计划先保持极小接口：
 
 ```text
-docs/
-  01-project-scope/
-  02-runtime-view/
-  03-module-view/
-  04-data-flow/
-  05-key-tradeoffs/
+d2a help
+d2a init <target-dir>
 ```
 
-上面的结构只是初始草案。后续会随着工具化过程持续收敛。
+## init Command
 
-## 当前阶段
+`d2a init <target-dir>` 会在目标目录下初始化多家 agent 的 `skills` 目录，并安装内置的一组 `d2a-*` skills。
 
-当前仓库处于初始化阶段，先建立：
+当前覆盖的目录：
 
-- 仓库定位说明
-- 输出目录约定
-- 后续工具化与样例沉淀的基础骨架
+- `.codex/skills`
+- `.claude/skills`
+- `.cursor/skills`
+- `.opencode/skills`
+- `.trae/skills`
+- `.neocode/skills`
 
-## 下一步
+安装后的结构示例：
 
-- 定义首版原子提问清单
-- 定义 `docs/` 的编号规则和叶子节点模板
-- 选取第一个开源项目进行完整拆解演示
-- 将流程进一步收敛为可重复执行的脚本或工具
+```text
+<target-dir>/
+  .codex/skills/d2a-project-scope/SKILL.md
+  .codex/skills/d2a-runtime-view/SKILL.md
+  .codex/skills/d2a-module-view/SKILL.md
+  .claude/skills/d2a-project-scope/SKILL.md
+  ...
+```
+
+## Built-in Skills
+
+当前脚手架先内置一组最小 skills：
+
+- `d2a-project-scope`
+- `d2a-runtime-view`
+- `d2a-module-view`
+
+这些 skills 只是第一版骨架，后续会继续扩展为完整套装。
+
+## Development Direction
+
+这个仓库会沿着两个方向同时推进：
+
+1. 打磨 `d2a` CLI 本身，让安装和分发足够简单。
+2. 持续收敛 `d2a-*` skills 的内容，让“架构拆解”流程真正可复用。
+
+## Current Status
+
+当前阶段完成的是第一版项目脚手架：
+
+- Go CLI 入口
+- `help` 与 `init` 命令
+- 内置 skills 资源
+- 多目录初始化逻辑
+
+下一步会继续补：
+
+- skills 的版本管理
+- 更完整的 `d2a-*` skills 套装
+- 面向真实开源项目的演示样例
+- 更稳定的发布与安装方式
