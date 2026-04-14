@@ -14,13 +14,14 @@ const usage = `d2a installs built-in architecture-analysis skills.
 Usage:
   d2a help
   d2a init <target-dir>
+  d2a version
 `
 
-func Run(args []string) error {
-	return runWithIO(args, os.Stdout)
+func Run(args []string, version string) error {
+	return runWithIO(args, os.Stdout, version)
 }
 
-func runWithIO(args []string, stdout io.Writer) error {
+func runWithIO(args []string, stdout io.Writer, version string) error {
 	if len(args) == 0 {
 		printUsage(stdout)
 		return nil
@@ -30,6 +31,9 @@ func runWithIO(args []string, stdout io.Writer) error {
 	case "help", "-h", "--help":
 		printUsage(stdout)
 		return nil
+	case "version":
+		_, err := fmt.Fprintf(stdout, "%s\n", version)
+		return err
 	case "init":
 		if len(args) != 2 {
 			return errors.New("init requires exactly one target directory")

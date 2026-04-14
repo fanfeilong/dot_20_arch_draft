@@ -32,7 +32,30 @@
 ```text
 d2a help
 d2a init <target-dir>
+d2a version
 ```
+
+## Install
+
+发布 GitHub Release 后，用户可以直接安装：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fanfeilong/dot_20_arch_draft/main/install.sh | sh
+```
+
+也可以安装指定版本：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fanfeilong/dot_20_arch_draft/main/install.sh | D2A_VERSION=v0.0.1 sh
+```
+
+默认安装到 `/usr/local/bin/d2a`。
+
+可选环境变量：
+
+- `D2A_VERSION`: 指定 Release 版本，默认 `latest`
+- `D2A_INSTALL_DIR`: 指定安装目录，默认 `/usr/local/bin`
+- `D2A_REPO`: 指定 GitHub 仓库，默认 `fanfeilong/dot_20_arch_draft`
 
 ## init Command
 
@@ -90,3 +113,14 @@ d2a init <target-dir>
 - 更完整的 `d2a-*` skills 套装
 - 面向真实开源项目的演示样例
 - 更稳定的发布与安装方式
+
+## Release
+
+仓库内置了 GitHub Actions release workflow。
+
+当推送形如 `v0.0.1` 的 tag 时，workflow 会：
+
+- 运行测试
+- 构建 macOS 和 Linux 二进制
+- 打包为 Release 资产
+- 创建对应的 GitHub Release
