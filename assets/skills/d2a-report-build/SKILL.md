@@ -1,3 +1,8 @@
+---
+name: d2a-report-build
+description: Built-in d2a skill for d2a-report-build stage guidance and state updates.
+---
+
 # d2a-report-build
 
 ## Goal

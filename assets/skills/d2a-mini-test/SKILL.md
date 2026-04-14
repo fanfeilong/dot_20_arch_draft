@@ -1,3 +1,8 @@
+---
+name: d2a-mini-test
+description: Built-in d2a skill for d2a-mini-test stage guidance and state updates.
+---
+
 # d2a-mini-test
 
 ## Goal

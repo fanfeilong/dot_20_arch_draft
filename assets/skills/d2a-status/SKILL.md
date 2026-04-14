@@ -1,3 +1,8 @@
+---
+name: d2a-status
+description: Built-in d2a skill for d2a-status stage guidance and state updates.
+---
+
 # d2a-status
 
 ## Goal

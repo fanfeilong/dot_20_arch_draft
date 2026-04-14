@@ -1,3 +1,8 @@
+---
+name: d2a-state-evolution
+description: Built-in d2a skill for d2a-state-evolution stage guidance and state updates.
+---
+
 # d2a-state-evolution
 
 ## Goal

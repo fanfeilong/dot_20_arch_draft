@@ -1,3 +1,8 @@
+---
+name: d2a-runtime-view
+description: Built-in d2a skill for d2a-runtime-view stage guidance and state updates.
+---
+
 # d2a-runtime-view
 
 ## Goal

@@ -1,3 +1,8 @@
+---
+name: d2a-tradeoff-view
+description: Built-in d2a skill for d2a-tradeoff-view stage guidance and state updates.
+---
+
 # d2a-tradeoff-view
 
 ## Goal

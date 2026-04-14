@@ -1,3 +1,8 @@
+---
+name: d2a-mini-design
+description: Built-in d2a skill for d2a-mini-design stage guidance and state updates.
+---
+
 # d2a-mini-design
 
 ## Goal

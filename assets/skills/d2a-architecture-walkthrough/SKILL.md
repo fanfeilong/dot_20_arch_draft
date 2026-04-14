@@ -1,3 +1,8 @@
+---
+name: d2a-architecture-walkthrough
+description: Built-in d2a skill for d2a-architecture-walkthrough stage guidance and state updates.
+---
+
 # d2a-architecture-walkthrough
 
 ## Goal

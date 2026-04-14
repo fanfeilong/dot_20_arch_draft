@@ -1,3 +1,8 @@
+---
+name: d2a-module-view
+description: Built-in d2a skill for d2a-module-view stage guidance and state updates.
+---
+
 # d2a-module-view
 
 ## Goal

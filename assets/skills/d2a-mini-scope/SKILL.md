@@ -1,3 +1,8 @@
+---
+name: d2a-mini-scope
+description: Built-in d2a skill for d2a-mini-scope stage guidance and state updates.
+---
+
 # d2a-mini-scope
 
 ## Goal

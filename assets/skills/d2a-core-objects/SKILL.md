@@ -1,3 +1,8 @@
+---
+name: d2a-core-objects
+description: Built-in d2a skill for d2a-core-objects stage guidance and state updates.
+---
+
 # d2a-core-objects
 
 ## Goal

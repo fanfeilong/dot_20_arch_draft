@@ -1,3 +1,8 @@
+---
+name: d2a-challenge-architecture
+description: Built-in d2a skill for d2a-challenge-architecture stage guidance and state updates.
+---
+
 # d2a-challenge-architecture
 
 ## Goal
