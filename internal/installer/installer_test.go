@@ -3,6 +3,7 @@ package installer
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -58,6 +59,49 @@ func TestInstall(t *testing.T) {
 		path := filepath.Join(target, rel)
 		if _, err := os.Stat(path); err != nil {
 			t.Fatalf("expected d2a file %s: %v", path, err)
+		}
+	}
+
+	gitignorePath := filepath.Join(target, ".gitignore")
+	gitignore, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		t.Fatalf("read .gitignore: %v", err)
+	}
+	for _, toolDir := range ToolDirs() {
+		entry := toolDir + "/"
+		if !strings.Contains(string(gitignore), entry) {
+			t.Fatalf("expected .gitignore to contain %q", entry)
+		}
+	}
+}
+
+func TestInstallUpdatesExistingGitignoreWithoutDuplicateEntries(t *testing.T) {
+	target := t.TempDir()
+	gitignorePath := filepath.Join(target, ".gitignore")
+	initial := "node_modules/\n.codex/\n"
+	if err := os.WriteFile(gitignorePath, []byte(initial), 0o644); err != nil {
+		t.Fatalf("write initial .gitignore: %v", err)
+	}
+
+	if _, err := Install(target); err != nil {
+		t.Fatalf("Install returned error: %v", err)
+	}
+	if _, err := Install(target); err != nil {
+		t.Fatalf("second Install returned error: %v", err)
+	}
+
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		t.Fatalf("read .gitignore: %v", err)
+	}
+	text := string(content)
+	if strings.Count(text, ".codex/") != 1 {
+		t.Fatalf("expected .codex/ to appear once, got %d", strings.Count(text, ".codex/"))
+	}
+	for _, toolDir := range ToolDirs() {
+		entry := toolDir + "/"
+		if !strings.Contains(text, entry) {
+			t.Fatalf("expected .gitignore to contain %q", entry)
 		}
 	}
 }

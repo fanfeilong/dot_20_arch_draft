@@ -38,6 +38,9 @@ func Install(targetDir string) (string, error) {
 	if err := installLab(targetDir); err != nil {
 		return "", err
 	}
+	if err := ensureGitignoreEntries(targetDir); err != nil {
+		return "", err
+	}
 
 	for _, toolDir := range toolDirs {
 		base := filepath.Join(targetDir, toolDir, "skills")
@@ -139,4 +142,58 @@ func installLab(targetDir string) error {
 
 		return nil
 	})
+}
+
+func ensureGitignoreEntries(targetDir string) error {
+	path := filepath.Join(targetDir, ".gitignore")
+	content, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("read gitignore %s: %w", path, err)
+	}
+
+	text := string(content)
+	lines := strings.Split(text, "\n")
+	toAdd := make([]string, 0, len(toolDirs))
+	for _, dir := range toolDirs {
+		name := strings.TrimPrefix(dir, ".")
+		if gitignoreHas(lines, name) {
+			continue
+		}
+		toAdd = append(toAdd, dir+"/")
+	}
+	if len(toAdd) == 0 {
+		return nil
+	}
+
+	var b strings.Builder
+	b.WriteString(text)
+	if b.Len() > 0 && !strings.HasSuffix(b.String(), "\n") {
+		b.WriteString("\n")
+	}
+	b.WriteString("\n# d2a skills directories\n")
+	for _, entry := range toAdd {
+		b.WriteString(entry)
+		b.WriteString("\n")
+	}
+
+	if err := os.WriteFile(path, []byte(b.String()), 0o644); err != nil {
+		return fmt.Errorf("write gitignore %s: %w", path, err)
+	}
+	return nil
+}
+
+func gitignoreHas(lines []string, name string) bool {
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		normalized := strings.TrimPrefix(trimmed, "/")
+		normalized = strings.TrimSuffix(normalized, "/")
+		normalized = strings.TrimPrefix(normalized, ".")
+		if normalized == name {
+			return true
+		}
+	}
+	return false
 }
