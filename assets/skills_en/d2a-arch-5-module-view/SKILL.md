@@ -99,6 +99,9 @@ When the current turn asks the user a question and waits for user input, the las
 ## Phase 3: Confirmation Questions
 
 1. Generate `4` multiple-choice questions from the actual phase-1 output, not from generic examples.
+   - Distractors must be plausible and close to real implementation paths or common misconceptions; avoid obviously absurd options.
+   - The correct option and distractors should be lexically similar enough to be confusing; correctness should require understanding this project's conclusions, not keyword spotting.
+   - At least `2` distractors per question must reuse real concepts, modules, or flow names from this project, but with semantically incorrect mapping.
 2. The 4 questions should cover these angles:
    - top-level module set
    - module responsibilities
