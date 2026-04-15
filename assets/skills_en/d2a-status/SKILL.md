@@ -36,6 +36,12 @@ Rules:
 
 If the active repository is unknown, stop and ask the user which repository should be used.
 
+## Human In Loop Marker Rule
+
+When the current turn asks the user a question and waits for user input, the last line of the reply body must append:
+
+`[human_in_loop]`
+
 ## Instructions
 
 1. Start by confirming the current repository context. Put repo/path information inside the shared envelope format instead of printing a separate header list.

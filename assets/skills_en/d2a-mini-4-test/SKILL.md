@@ -40,6 +40,12 @@ Rules:
 
 If the active repository is unknown, stop and ask the user which repository should be used.
 
+## Human In Loop Marker Rule
+
+When the current turn asks the user a question and waits for user input, the last line of the reply body must append:
+
+`[human_in_loop]`
+
 ## Three Mini Fast-Track Gates
 
 In a 1-hour talk setting, the mini stage must pass these gates before implementation detail:

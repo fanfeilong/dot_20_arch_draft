@@ -36,6 +36,12 @@ Rules:
 
 If the active repository is unknown, stop and ask the user which repository should be used.
 
+## Human In Loop Marker Rule
+
+When the current turn asks the user a question and waits for user input, the last line of the reply body must append:
+
+`[human_in_loop]`
+
 ## Instructions
 
 1. Start by confirming the current repository context. Put repo/path information inside the shared envelope format instead of printing a separate header list.
@@ -48,8 +54,9 @@ If the active repository is unknown, stop and ask the user which repository shou
 8. Keep the report focused on architecture, mini implementation, tests, and the teaching narrative.
 9. Treat `.d2a/report/data/*.json` as the stable input contract for the future Vue app.
 10. You must generate two-page brief artifacts: `report/brief.md` and `report/brief.html` (A4 print style).
-11. If any DoD item is missing, do not mark this skill as completed.
-12. When this pass is complete, call `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Review the local report or run d2a serve." --summary "Completed report-build work with 2-page A4 brief."`.
+11. Before finishing, you must explicitly run `d2a report` once so the latest report artifacts are materialized on disk (not only described in conversation).
+12. If any DoD item is missing, or `d2a report` has not succeeded, do not mark this skill as completed.
+13. When this pass is complete, call `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Run d2a serve to open the report." --summary "Completed report-build work and refreshed artifacts via d2a report."`.
 
 ## DoD (All Required)
 
@@ -61,6 +68,7 @@ If the active repository is unknown, stop and ask the user which repository shou
 4. Required output files:
    - `report/brief.md`
    - `report/brief.html`
+   - `report/index.html`
 
 ## Turn-End Continuation Rule
 

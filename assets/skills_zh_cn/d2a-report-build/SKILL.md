@@ -36,6 +36,12 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 如果无法确定当前仓库，立即停止并询问用户要使用哪个仓库。
 
+## Human In Loop 标记规则
+
+当本回合包含“向用户提问并等待回答”的动作时，回复正文最后一行必须追加：
+
+`[human_in_loop]`
+
 ## 执行说明
 
 1. 先确认当前仓库上下文。将 repo/path 信息写入统一外壳，不要额外输出独立头信息清单。
@@ -48,8 +54,9 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 8. 报告聚焦架构、mini 实现、测试与教学叙事。
 9. 将 `.d2a/report/data/*.json` 视为未来 Vue 应用的稳定输入契约。
 10. 必须生成双页简报产物：`report/brief.md` 与 `report/brief.html`（A4 打印样式）。
-11. 若任一 DoD 未满足，不得标记 completed。
-12. 本轮完成后，调用 `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Review the local report or run d2a serve." --summary "Completed report-build work with 2-page A4 brief."`.
+11. 收尾前必须显式执行一次 `d2a report`，确保最新报告产物已落盘（不要只停留在对话层结论）。
+12. 若任一 DoD 未满足，或 `d2a report` 未成功执行，不得标记 completed。
+13. 本轮完成后，调用 `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Run d2a serve to open the report." --summary "Completed report-build work and refreshed artifacts via d2a report."`.
 
 ## DoD（必须全部满足）
 
@@ -61,6 +68,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 4. 产物文件必须存在：
    - `report/brief.md`
    - `report/brief.html`
+   - `report/index.html`
 
 ## 回合结束续接规则
 
