@@ -46,6 +46,8 @@ Rules:
 3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
+5. For structured content (lists, numbered items, MCQ options A/B/C/D), do not merge lines just to satisfy width limits; keep one item per line.
+
 If the active repository is unknown, stop and ask the user which repository should be used.
 
 ## Human In Loop Marker Rule
@@ -109,21 +111,26 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 
    `d2a skill-state d2a-mini-4-test --status progress --stage testing-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "Continue mini-test confirmation questions." --next-skill "d2a-report-build" --next-file ".d2a/report/index.md" --summary "Mini-test confirmation question <N> is active."`
 
-6. Present one question with multiple choices.
-7. Wait for the learner answer.
-8. After the learner answer:
+6. Present one multiple-choice question.
+7. Rendering format must preserve structure:
+   - question stem on its own line
+   - options `A.`, `B.`, `C.`, `D.` each on its own line
+   - `[human_in_loop]` must be on its own line
+8. Do not merge the stem and options into one line.
+9. Wait for the learner answer.
+10. After the learner answer:
    - say whether the answer is correct, partially correct, or incorrect
    - give one short explanation
    - continue to the next question even if the answer is wrong
-9. After question 4 is evaluated:
+11. After question 4 is evaluated:
    - output a short recap
    - output a `Comprehension Score`
    - keep the `Comprehension Score` under 100 Chinese characters
-10. At the end of the confirmation phase, call:
+12. At the end of the confirmation phase, call:
 
     `d2a skill-state d2a-mini-4-test --status completed --stage testing-complete --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-report-build." --next-skill "d2a-report-build" --next-file ".d2a/report/index.md" --summary "Completed mini-test confirmation questions."`
 
-11. Confirmation-question prompts, learner answers, evaluations, and explanations must be written to `.d2a/qa/<skill>.jsonl`, and must not be written into `tests/*` or `report/*`.
+13. Confirmation-question prompts, learner answers, evaluations, and explanations must be written to `.d2a/qa/<skill>.jsonl`, and must not be written into `tests/*` or `report/*`.
 
 ## Turn-End Continuation Rule
 

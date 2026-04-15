@@ -133,7 +133,7 @@ func sharedHeader(title, target, skill string) string {
 }
 
 func overviewTask(target string) string {
-	return sharedHeader("00. Overview", target, "d2a-step") + `## To Produce
+	return sharedHeader("00. Overview", target, "d2a-arch-7-overview") + `## To Produce
 
 - One-sentence system definition
 - The one capability that must remain if 80% of the code were deleted

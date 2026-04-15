@@ -46,6 +46,8 @@ Rules:
 3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
+5. For structured content (lists, numbered items, MCQ options A/B/C/D), do not merge lines just to satisfy width limits; keep one item per line.
+
 If the active repository is unknown, stop and ask the user which repository should be used.
 
 ## Human In Loop Marker Rule
@@ -76,7 +78,7 @@ When the current turn asks the user a question and waits for user input, the las
 
 1. After context is confirmed, call:
 
-   `d2a skill-state d2a-arch-6-tradeoff-view --status progress --stage architecture-in-progress --phase analysis-generation --next-step "Identify the strongest constraints and architectural tradeoff." --next-skill "d2a-challenge-architecture" --next-file "docs/architecture/06_constraints.md" --summary "Started tradeoff-view analysis."`
+   `d2a skill-state d2a-arch-6-tradeoff-view --status progress --stage architecture-in-progress --phase analysis-generation --next-step "Identify the strongest constraints and architectural tradeoff." --next-skill "d2a-arch-7-overview" --next-file "docs/architecture/06_constraints.md" --summary "Started tradeoff-view analysis."`
 
 2. Work from the real repository and write the result into `docs/architecture/06_constraints.md`.
 3. Answer these merged atomic questions (base + optional user supplements):
@@ -108,23 +110,28 @@ When the current turn asks the user a question and waits for user input, the las
    - The `[next]` line should point to the post-question next skill/file.
 5. Before asking question `N`, call:
 
-   `d2a skill-state d2a-arch-6-tradeoff-view --status progress --stage architecture-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "Continue tradeoff-view confirmation questions." --next-skill "d2a-challenge-architecture" --next-file "docs/architecture/06_constraints.md" --summary "Tradeoff-view confirmation question <N> is active."`
+   `d2a skill-state d2a-arch-6-tradeoff-view --status progress --stage architecture-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "Continue tradeoff-view confirmation questions." --next-skill "d2a-arch-7-overview" --next-file "docs/architecture/06_constraints.md" --summary "Tradeoff-view confirmation question <N> is active."`
 
-6. Present one question with multiple choices.
-7. Wait for the learner answer.
-8. After the learner answer:
+6. Present one multiple-choice question.
+7. Rendering format must preserve structure:
+   - question stem on its own line
+   - options `A.`, `B.`, `C.`, `D.` each on its own line
+   - `[human_in_loop]` must be on its own line
+8. Do not merge the stem and options into one line.
+9. Wait for the learner answer.
+10. After the learner answer:
    - say whether the answer is correct, partially correct, or incorrect
    - give one short explanation
    - continue to the next question even if the answer is wrong
-9. After question 4 is evaluated:
+11. After question 4 is evaluated:
    - output a short recap
    - output a `Comprehension Score`
    - keep the `Comprehension Score` under 100 Chinese characters
-10. At the end of the confirmation phase, call:
+12. At the end of the confirmation phase, call:
 
-    `d2a skill-state d2a-arch-6-tradeoff-view --status completed --stage architecture-complete --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-challenge-architecture." --next-skill "d2a-challenge-architecture" --next-file "docs/architecture/06_constraints.md" --summary "Completed tradeoff-view confirmation questions."`
+    `d2a skill-state d2a-arch-6-tradeoff-view --status completed --stage architecture-in-progress --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-arch-7-overview." --next-skill "d2a-arch-7-overview" --next-file "docs/architecture/00_overview.md" --summary "Completed tradeoff-view confirmation questions."`
 
-11. Confirmation-question prompts, learner answers, evaluations, and explanations must be written to `.d2a/qa/<skill>.jsonl`, and must not be written into `docs/architecture/*.md`.
+13. Confirmation-question prompts, learner answers, evaluations, and explanations must be written to `.d2a/qa/<skill>.jsonl`, and must not be written into `docs/architecture/*.md`.
 
 ## Turn-End Continuation Rule
 

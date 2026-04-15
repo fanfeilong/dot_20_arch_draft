@@ -234,6 +234,7 @@ d2a skill-state <skill-name> ...
   .codex/skills/d2a-arch-4-state-evolution/SKILL.md
   .codex/skills/d2a-arch-5-module-view/SKILL.md
   .codex/skills/d2a-arch-6-tradeoff-view/SKILL.md
+  .codex/skills/d2a-arch-7-overview/SKILL.md
   .codex/skills/d2a-mini-1-scope/SKILL.md
   .codex/skills/d2a-mini-2-design/SKILL.md
   .codex/skills/d2a-mini-3-build/SKILL.md
@@ -256,12 +257,13 @@ d2a skill-state <skill-name> ...
 
 当前脚手架先内置一组最小 skills：
 
-- `d2a-arch-1-project-scope`: 对应六要素中的“边界”
-- `d2a-arch-2-runtime-view`: 对应六要素中的“驱动”
-- `d2a-arch-3-core-objects`: 对应六要素中的“核心对象”
-- `d2a-arch-4-state-evolution`: 对应六要素中的“状态演化 / 状态机”
-- `d2a-arch-5-module-view`: 对应六要素中的“协作”
-- `d2a-arch-6-tradeoff-view`: 对应六要素中的“约束 / 取舍”
+- `d2a-arch-1-project-scope`: 对应分析步骤中的“边界”
+- `d2a-arch-2-runtime-view`: 对应分析步骤中的“驱动”
+- `d2a-arch-3-core-objects`: 对应分析步骤中的“核心对象”
+- `d2a-arch-4-state-evolution`: 对应分析步骤中的“状态演化 / 状态机”
+- `d2a-arch-5-module-view`: 对应分析步骤中的“协作”
+- `d2a-arch-6-tradeoff-view`: 对应分析步骤中的“约束 / 取舍”
+- `d2a-arch-7-overview`: 对应分析步骤中的“总览综合（由 1-6 汇总生成 00）”
 - `d2a-mini-1-scope`: mini implementation 范围收敛入口
 - `d2a-mini-2-design`: mini implementation 设计入口
 - `d2a-mini-3-build`: mini implementation 实现入口
@@ -286,6 +288,7 @@ d2a skill-state <skill-name> ...
 - [d2a-arch-4-state-evolution](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-4-state-evolution/SKILL.md)
 - [d2a-arch-5-module-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-5-module-view/SKILL.md)
 - [d2a-arch-6-tradeoff-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-6-tradeoff-view/SKILL.md)
+- [d2a-arch-7-overview](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-7-overview/SKILL.md)
 
 - analysis-generation
 - confirmation-questions

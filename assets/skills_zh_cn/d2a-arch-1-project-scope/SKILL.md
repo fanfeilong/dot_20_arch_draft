@@ -46,6 +46,8 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 3. 单行不超过 80 个中文字符；超长必须拆行。
 4. 正文禁止使用 Markdown 强调符号（如 `` `...` ``、`**...**`）。
 
+5. 对条目、编号列表、选择题选项（A/B/C/D）等结构化内容，不要为满足字数限制而合并或破坏结构；保持一项一行。
+
 如果无法确定当前仓库，立即停止并询问用户要使用哪个仓库。
 
 ## Human In Loop 标记规则
@@ -112,20 +114,25 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
    `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "继续 project-scope 确认题。" --next-skill "d2a-arch-2-runtime-view" --next-file "docs/1.架构拆解/02_驱动.md" --summary "Project-scope confirmation question <N> is active."`
 
 6. 给出一道选择题。
-7. 等待学习者作答。
-8. 学习者作答后：
+7. 题目展示必须保持结构：
+   - 题干独占一行
+   - 选项 `A.`、`B.`、`C.`、`D.` 各自独占一行
+   - `[human_in_loop]` 必须独占一行
+8. 禁止将题干与选项合并到同一行。
+9. 等待学习者作答。
+10. 学习者作答后：
    - 判断答案是正确、部分正确还是错误
    - 给出一句简短解释
    - 即使答错也继续下一题
-9. 第 4 题评估后：
+11. 第 4 题评估后：
    - 输出简短回顾
    - 输出 `理解度打分`
    - `理解度打分` 控制在 80 字以内
-10. 确认题阶段结束时，调用：
+12. 确认题阶段结束时，调用：
 
     `d2a skill-state d2a-arch-1-project-scope --status completed --stage architecture-in-progress --phase confirmation-questions --question-index 4 --question-total 4 --next-step "进入 d2a-arch-2-runtime-view。" --next-skill "d2a-arch-2-runtime-view" --next-file "docs/1.架构拆解/02_驱动.md" --summary "Completed project-scope confirmation questions."`
 
-11. 确认题的题干、用户答案、判定与解释必须写入 `.d2a/qa/<skill>.jsonl`，不得写入 `docs/architecture/*.md`。
+13. 确认题的题干、用户答案、判定与解释必须写入 `.d2a/qa/<skill>.jsonl`，不得写入 `docs/architecture/*.md`。
 
 ## 回合结束续接规则
 

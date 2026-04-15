@@ -40,7 +40,7 @@ func TestAnalyze(t *testing.T) {
 	if !strings.Contains(text, target) {
 		t.Fatalf("overview file does not mention target repo: %q", text)
 	}
-	if !strings.Contains(text, "d2a-step") {
+	if !strings.Contains(text, "d2a-arch-7-overview") {
 		t.Fatalf("overview file does not mention primary skill: %q", text)
 	}
 }

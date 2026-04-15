@@ -46,6 +46,8 @@ Rules:
 3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
+5. For structured content (lists, numbered items, MCQ options A/B/C/D), do not merge lines just to satisfy width limits; keep one item per line.
+
 If the active repository is unknown, stop and ask the user which repository should be used.
 
 ## Human In Loop Marker Rule

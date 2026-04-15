@@ -51,6 +51,8 @@ Rules:
 3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
+5. For structured content (lists, numbered items, MCQ options A/B/C/D), do not merge lines just to satisfy width limits; keep one item per line.
+
 If the active repository is unknown, stop and ask the user which repository should be used.
 
 ## Human In Loop Marker Rule
@@ -65,7 +67,7 @@ When the current turn asks the user a question and waits for user input, the las
 
 ```text
 ==================================================
-[Analysis 1/6 | Boundary] n8n_d2a
+[Analysis 1/7 | Boundary] n8n_d2a
 next: d2a-arch-1-project-scope -> docs/architecture/01_boundary.md
 ==================================================
 
@@ -75,7 +77,7 @@ next: d2a-arch-1-project-scope -> docs/architecture/01_boundary.md
 
 --------------------------------------------------
 done: pre-execution confirmation completed for next action
-state: Analysis 1/6|Boundary -> Analysis 1/6|Boundary · Continue with $d2a-step
+state: Analysis 1/7|Boundary -> Analysis 1/7|Boundary · Continue with $d2a-step
 --------------------------------------------------
 ```
 
@@ -99,7 +101,7 @@ state: Analysis 1/6|Boundary -> Analysis 1/6|Boundary · Continue with $d2a-step
    - `Implementation`
    - `Report`
 2. Layer-2:
-   - Analysis: `Boundary` / `Driver` / `Core Objects` / `State Machine` / `Module Cooperation` / `Constraints`
+   - Analysis: `Boundary` / `Driver` / `Core Objects` / `State Machine` / `Module Cooperation` / `Constraints` / `Overview`
    - Implementation: `Minimal Scope` / `Minimal Design` / `Minimal Build` / `Minimal Test`
    - Report: `Report Build`
 3. Header/footer skeleton positions should use these labels instead of raw stage ids.
@@ -116,6 +118,9 @@ state: Analysis 1/6|Boundary -> Analysis 1/6|Boundary · Continue with $d2a-step
    - `serving` -> `d2a-status`
 3. If `next_skill` exists and does not conflict with the stage routing, prefer `next_skill`.
 4. If routing is ambiguous, ask one short clarification question and do not guess.
+5. The analysis chain order is fixed:
+   - `d2a-arch-1-project-scope` -> `d2a-arch-2-runtime-view` -> `d2a-arch-3-core-objects` -> `d2a-arch-4-state-evolution` -> `d2a-arch-5-module-view` -> `d2a-arch-6-tradeoff-view` -> `d2a-arch-7-overview`
+   - enter `d2a-challenge-architecture` only after `d2a-arch-7-overview` is completed.
 
 ## Step Execution
 
