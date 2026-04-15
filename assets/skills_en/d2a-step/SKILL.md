@@ -36,7 +36,20 @@ Rules:
 1. Keep the opening to exactly two lines between separators.
 2. Keep the ending to exactly two lines between separators.
 3. Keep the body concise and operational; avoid long raw state dumps unless debugging is explicitly requested.
-4. If `next_file` is unknown, print `unknown` and keep the same two-line shape.
+4. Body must be at least two lines:
+   - line 1: current action (what is happening now)
+   - line 2: purpose/evidence (why this action is selected)
+5. Auto-wrap body text; keep each line under about 140 characters.
+6. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`) to prevent code-block-like rendering in Cursor.
+7. If `next_file` is unknown, print `unknown` and keep the same two-line shape.
+
+
+## Body Formatting Hard Rules
+
+1. The body must use `- ` bullet lines, minimum 2 lines and maximum 4 lines.
+2. Each point must occupy exactly one line; do not write long paragraphs.
+3. Keep each line under about 140 characters; split lines when longer.
+4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
 If the active repository is unknown, stop and ask the user which repository should be used.
 
@@ -47,6 +60,24 @@ When the current turn asks the user a question and waits for user input, the las
 `[human_in_loop]`
 
 ## State Recovery
+
+### Example (Confirmation Gate)
+
+```text
+==================================================
+[Analysis 1/6 | Boundary] n8n_d2a
+next: d2a-arch-1-project-scope -> .d2a/docs/architecture/01_boundary.md
+==================================================
+
+- Next action: d2a-arch-1-project-scope (file: .d2a/docs/architecture/01_boundary.md).
+- Please confirm whether to continue this action. (yes/no)
+[human_in_loop]
+
+--------------------------------------------------
+done: pre-execution confirmation completed for next action
+state: Analysis 1/6|Boundary -> Analysis 1/6|Boundary · Continue with $d2a-step
+--------------------------------------------------
+```
 
 1. Call `d2a status` or read `.d2a/state.json` to get:
    - `current_stage`
@@ -92,13 +123,18 @@ When the current turn asks the user a question and waits for user input, the las
 
    `d2a skill-state d2a-step --status started --phase analysis-generation --next-step "Resume from persisted d2a state and route to the next skill." --summary "Started d2a-step orchestration."`
 
-2. Tell the user exactly which skill to run now and why (stage + phase evidence).
-3. If needed, tell the user the exact file to continue from (`next_file`).
-4. After emitting the step decision, call:
+2. Before starting the next action, you must emit an execution-intent confirmation and wait for user approval:
+   - fixed prompt: `Next action: <ROUTED_SKILL> (file: <ROUTED_FILE>). Continue? (yes/no)`
+   - the last line of the reply body must append: `[human_in_loop]`
+   - if user answers `no`, stop and ask which skill or stage they want instead.
+   - if user answers `yes`, continue to step 3.
+3. Tell the user exactly which skill to run now and why (stage + phase evidence).
+4. If needed, tell the user the exact file to continue from (`next_file`).
+5. Only after user confirmation, call:
 
    `d2a skill-state d2a-step --status completed --phase analysis-generation --next-step "Continue with the routed skill." --next-skill "<ROUTED_SKILL>" --next-file "<ROUTED_FILE>" --summary "d2a-step routed to <ROUTED_SKILL> based on persisted state."`
 
-5. End with: `Continue with $d2a-step`.
+6. End with: `Continue with $d2a-step`.
 
 ## Output
 
