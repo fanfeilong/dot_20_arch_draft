@@ -15,7 +15,7 @@ func ReportHandler(repoRoot string) (http.Handler, error) {
 		return nil, fmt.Errorf("resolve repo root: %w", err)
 	}
 
-	reportDir := filepath.Join(repoRoot, ".d2a", "report")
+	reportDir := filepath.Join(repoRoot, "report")
 	indexPath := filepath.Join(reportDir, "index.html")
 	if _, err := os.Stat(indexPath); err != nil {
 		if os.IsNotExist(err) {

@@ -29,19 +29,24 @@ func DeriveMini(repoRoot string) (string, error) {
 		return "", err
 	}
 
-	d2aDir := filepath.Join(repoRoot, ".d2a")
 	for rel, content := range implementationTasks(meta.TargetRepo) {
-		path := filepath.Join(d2aDir, filepath.FromSlash(rel))
+		path := filepath.Join(repoRoot, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return "", fmt.Errorf("create implementation dir %s: %w", filepath.Dir(path), err)
+		}
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return "", fmt.Errorf("write implementation file %s: %w", path, err)
 		}
 	}
 
-	srcArchPath := filepath.Join(d2aDir, "src", "ARCHITECTURE.md")
+	srcArchPath := filepath.Join(repoRoot, "src", "ARCHITECTURE.md")
+	if err := os.MkdirAll(filepath.Dir(srcArchPath), 0o755); err != nil {
+		return "", fmt.Errorf("create src dir %s: %w", filepath.Dir(srcArchPath), err)
+	}
 	if err := os.WriteFile(srcArchPath, []byte(srcArchitecture(meta.TargetRepo)), 0o644); err != nil {
 		return "", fmt.Errorf("write src architecture file %s: %w", srcArchPath, err)
 	}
-	if err := writeGoMiniScaffold(d2aDir, meta.TargetRepo); err != nil {
+	if err := writeGoMiniScaffold(repoRoot, meta.TargetRepo); err != nil {
 		return "", err
 	}
 
@@ -64,7 +69,7 @@ func ensureChallengeComplete(repoRoot string) error {
 }
 
 func loadMetadata(repoRoot string) (metadata, error) {
-	d2aFile := filepath.Join(repoRoot, ".d2a", "LAB.md")
+	d2aFile := filepath.Join(repoRoot, "LAB.md")
 	if _, err := os.Stat(d2aFile); err != nil {
 		if os.IsNotExist(err) {
 			return metadata{}, fmt.Errorf("d2a not initialized in repository: %s", repoRoot)
@@ -163,10 +168,10 @@ func buildPlanTask(target string) string {
 
 ## Atomic Questions
 
-1. In what file creation order should the mini version be built?
-2. What is the first runnable slice?
-3. What are the next follow-up slices?
-4. What risks or open choices must be watched?
+1. Which built-in provider (if any) matches the target stack, and what minimal scaffold does it imply?
+2. What is the first runnable slice that can be completed within a strict timebox?
+3. How does this slice prove the architecture intent anchors (object/state/cooperation chain)?
+4. What is intentionally left unimplemented to protect the timebox?
 `
 }
 
@@ -206,7 +211,7 @@ This file should summarize the chosen mini implementation after docs/implementat
 `, target)
 }
 
-func writeGoMiniScaffold(d2aDir, target string) error {
+func writeGoMiniScaffold(repoRoot, target string) error {
 	files := map[string]string{
 		"src/go-mini/README.md": goMiniReadme(target),
 		"src/go-mini/go.mod": `module d2a-mini
@@ -245,7 +250,7 @@ func (Runner) Run(input string) string {
 	}
 
 	for rel, content := range files {
-		path := filepath.Join(d2aDir, filepath.FromSlash(rel))
+		path := filepath.Join(repoRoot, filepath.FromSlash(rel))
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return fmt.Errorf("create scaffold dir %s: %w", filepath.Dir(path), err)
 		}
@@ -272,7 +277,7 @@ This is the first supported runnable mini stack scaffold (Go).
 
 Run:
 
-`+"```bash\ncd .d2a/src/go-mini\ngo run ./cmd/mini\n```"+`
+`+"```bash\ncd src/go-mini\ngo run ./cmd/mini\n```"+`
 
 Expected output:
 

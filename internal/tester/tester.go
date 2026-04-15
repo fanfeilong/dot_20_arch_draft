@@ -36,9 +36,11 @@ func PrepareTests(repoRoot string) (string, error) {
 		return "", err
 	}
 
-	d2aDir := filepath.Join(repoRoot, ".d2a")
 	for rel, content := range testTasks(meta.TargetRepo) {
-		path := filepath.Join(d2aDir, filepath.FromSlash(rel))
+		path := filepath.Join(repoRoot, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return "", fmt.Errorf("create tests dir %s: %w", filepath.Dir(path), err)
+		}
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return "", fmt.Errorf("write test file %s: %w", path, err)
 		}
@@ -47,7 +49,7 @@ func PrepareTests(repoRoot string) (string, error) {
 	m := manifest{
 		TargetRepo: meta.TargetRepo,
 		RepoRoot:   repoRoot,
-		D2APath:    d2aDir,
+		D2APath:    filepath.Join(repoRoot, ".d2a"),
 		Inputs: []string{
 			"docs/implementation/00_mini_scope.md",
 			"docs/implementation/01_mini_design.md",
@@ -60,7 +62,7 @@ func PrepareTests(repoRoot string) (string, error) {
 			"tests/01_integration_tasks.md",
 		},
 	}
-	if err := writeJSON(filepath.Join(d2aDir, "test-mini.json"), m); err != nil {
+	if err := writeJSON(filepath.Join(repoRoot, ".d2a", "test-mini.json"), m); err != nil {
 		return "", err
 	}
 
@@ -68,7 +70,7 @@ func PrepareTests(repoRoot string) (string, error) {
 }
 
 func loadMetadata(repoRoot string) (metadata, error) {
-	d2aFile := filepath.Join(repoRoot, ".d2a", "LAB.md")
+	d2aFile := filepath.Join(repoRoot, "LAB.md")
 	if _, err := os.Stat(d2aFile); err != nil {
 		if os.IsNotExist(err) {
 			return metadata{}, fmt.Errorf("d2a not initialized in repository: %s", repoRoot)
@@ -97,7 +99,7 @@ func loadMetadata(repoRoot string) (metadata, error) {
 }
 
 func ensureDerivation(repoRoot string) error {
-	path := filepath.Join(repoRoot, ".d2a", "src", "ARCHITECTURE.md")
+	path := filepath.Join(repoRoot, "src", "ARCHITECTURE.md")
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
 			return fmt.Errorf("mini derivation not prepared: %s", repoRoot)

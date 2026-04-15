@@ -47,7 +47,7 @@ The implementation now covers Phase 1 through a baseline of Phase 4:
 
 - Phase 1: full `.d2a/` tree + built-in skills
 - Phase 2: deterministic architecture task-file generation (`d2a analyze`)
-- Phase 3: deterministic mini/test planning files + first runnable Go scaffold under `.d2a/src/go-mini/`
-- Phase 4: report data files + static report surface + Vue app skeleton under `.d2a/report/vue-app/`
+- Phase 3: deterministic mini/test planning files + first runnable Go scaffold under `src/go-mini/`
+- Phase 4: report data files + static report surface + Vue app skeleton under `report/vue-app/`
 
 The next frontier is quality depth, not missing scaffolding.

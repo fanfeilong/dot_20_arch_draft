@@ -30,11 +30,31 @@ After each question turn, the system should preserve:
 - next pending question
 - next workflow step after the confirmation phase
 
-This information should be recoverable from `.d2a/state.json` and recent history.
+This information should be recoverable from:
+
+- `.d2a/state.json` (global cursor)
+- `.d2a/qa/<skill>.json` (per-skill question cursor)
+- `.d2a/qa/<skill>.jsonl` (per-turn question log)
+- recent history (`.d2a/history.jsonl`)
 
 Each learner-facing turn should end with a continuation hint:
 
 `继续请使用 $d2a-step`
+
+For `d2a-step`, use a compact framed format:
+
+```text
+==================================================
+[d2a] <repo> · <stage> · <phase> · <progress>
+[next] <next_skill> → <next_file>
+==================================================
+...body...
+--------------------------------------------------
+[done] <turn result>
+[state] <current> → <next>
+继续请使用 $d2a-step
+--------------------------------------------------
+```
 
 ## Phase-End Rule
 
@@ -43,6 +63,7 @@ After the final question in a confirmation set:
 1. output the short comprehension evaluation
 2. update the stage machine
 3. record the next recommended skill or file
+4. flush the final question-turn record to `.d2a/qa/<skill>.jsonl`
 
 ## Persistence Rule
 
@@ -52,6 +73,8 @@ The state store should track both:
 - question progress inside a stage
 
 This prevents loss of context when the confirmation phase spans multiple interactions.
+
+Architecture docs remain output-only artifacts and should not embed question text, answers, or scoring.
 
 ## Status
 

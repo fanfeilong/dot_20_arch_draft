@@ -32,8 +32,8 @@ because that would misplace the primary control surface.
 
 Current implementation already includes:
 
-1. implementation-focused skills (`d2a-mini-scope`, `d2a-mini-design`, `d2a-mini-build`)
-2. testing-focused skill (`d2a-mini-test`)
+1. implementation-focused skills (`d2a-mini-1-scope`, `d2a-mini-2-design`, `d2a-mini-3-build`)
+2. testing-focused skill (`d2a-mini-4-test`)
 3. reporting-focused skill (`d2a-report-build`)
 4. explicit command-calling conventions in each skill template (`d2a skill-state` and stage commands)
 

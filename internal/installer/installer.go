@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
@@ -20,22 +21,43 @@ var toolDirs = []string{
 	".neocode",
 }
 
+const (
+	LanguageZH = "zh"
+	LanguageEN = "en"
+)
+
 func Install(targetDir string) (string, error) {
+	return InstallWithLanguage(targetDir, LanguageZH)
+}
+
+func InstallWithLanguage(targetDir, language string) (string, error) {
 	targetDir, err := filepath.Abs(targetDir)
 	if err != nil {
 		return "", fmt.Errorf("resolve target dir: %w", err)
+	}
+	language, err = normalizeLanguage(language)
+	if err != nil {
+		return "", err
 	}
 
 	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		return "", fmt.Errorf("create target dir: %w", err)
 	}
 
-	skills, err := loadSkills()
+	skills, err := loadSkills(language)
 	if err != nil {
 		return "", err
 	}
 
-	if err := installLab(targetDir); err != nil {
+	if err := installLab(targetDir, language); err != nil {
+		return "", err
+	}
+	if language == LanguageZH {
+		if err := ensureZhLegacyDocAliases(targetDir); err != nil {
+			return "", err
+		}
+	}
+	if err := writeLanguageConfig(targetDir, language); err != nil {
 		return "", err
 	}
 	if err := ensureGitignoreEntries(targetDir); err != nil {
@@ -71,7 +93,7 @@ func ToolDirs() []string {
 }
 
 func SkillNames() ([]string, error) {
-	skills, err := loadSkills()
+	skills, err := loadSkills(LanguageZH)
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +106,12 @@ func SkillNames() ([]string, error) {
 	return names, nil
 }
 
-func loadSkills() (map[string][]byte, error) {
-	entries, err := fs.ReadDir(assets.Files, "skills")
+func loadSkills(language string) (map[string][]byte, error) {
+	root, err := skillsRoot(language)
+	if err != nil {
+		return nil, err
+	}
+	entries, err := fs.ReadDir(assets.Files, root)
 	if err != nil {
 		return nil, fmt.Errorf("read embedded skills: %w", err)
 	}
@@ -97,7 +123,7 @@ func loadSkills() (map[string][]byte, error) {
 		}
 
 		name := entry.Name()
-		path := filepath.ToSlash(filepath.Join("skills", name, "SKILL.md"))
+		path := filepath.ToSlash(filepath.Join(root, name, "SKILL.md"))
 		content, err := fs.ReadFile(assets.Files, path)
 		if err != nil {
 			return nil, fmt.Errorf("read embedded skill %s: %w", name, err)
@@ -109,39 +135,65 @@ func loadSkills() (map[string][]byte, error) {
 	return skills, nil
 }
 
-func installLab(targetDir string) error {
-	return fs.WalkDir(assets.Files, "lab", func(path string, d fs.DirEntry, err error) error {
+func skillsRoot(language string) (string, error) {
+	switch language {
+	case LanguageZH:
+		return "skills_zh_cn", nil
+	case LanguageEN:
+		return "skills_en", nil
+	default:
+		return "", fmt.Errorf("unsupported language pack: %s", language)
+	}
+}
+
+func installLab(targetDir, language string) error {
+	root, err := labRoot(language)
+	if err != nil {
+		return err
+	}
+	return fs.WalkDir(assets.Files, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk embedded d2a assets: %w", err)
 		}
-		if path == "lab" {
+		if path == root {
 			return nil
 		}
 
-		rel := strings.TrimPrefix(path, "lab/")
-		targetPath := filepath.Join(targetDir, ".d2a", filepath.FromSlash(rel))
+		rel := strings.TrimPrefix(path, root+"/")
+		targetPath := filepath.Join(targetDir, filepath.FromSlash(rel))
 
 		if d.IsDir() {
 			if err := os.MkdirAll(targetPath, 0o755); err != nil {
-				return fmt.Errorf("create d2a dir %s: %w", targetPath, err)
+				return fmt.Errorf("create lab dir %s: %w", targetPath, err)
 			}
 			return nil
 		}
 
 		content, err := fs.ReadFile(assets.Files, path)
 		if err != nil {
-			return fmt.Errorf("read embedded d2a file %s: %w", path, err)
+			return fmt.Errorf("read embedded lab file %s: %w", path, err)
 		}
 
 		if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
-			return fmt.Errorf("create d2a parent dir %s: %w", filepath.Dir(targetPath), err)
+			return fmt.Errorf("create lab parent dir %s: %w", filepath.Dir(targetPath), err)
 		}
 		if err := os.WriteFile(targetPath, content, 0o644); err != nil {
-			return fmt.Errorf("write d2a file %s: %w", targetPath, err)
+			return fmt.Errorf("write lab file %s: %w", targetPath, err)
 		}
 
 		return nil
 	})
+}
+
+func labRoot(language string) (string, error) {
+	switch language {
+	case LanguageZH:
+		return "lab_zh_cn", nil
+	case LanguageEN:
+		return "lab_en", nil
+	default:
+		return "", fmt.Errorf("unsupported language pack: %s", language)
+	}
 }
 
 func ensureGitignoreEntries(targetDir string) error {
@@ -160,6 +212,9 @@ func ensureGitignoreEntries(targetDir string) error {
 			continue
 		}
 		toAdd = append(toAdd, dir+"/")
+	}
+	if !gitignoreHas(lines, "repos") {
+		toAdd = append(toAdd, "repos/")
 	}
 	if len(toAdd) == 0 {
 		return nil
@@ -182,6 +237,55 @@ func ensureGitignoreEntries(targetDir string) error {
 	return nil
 }
 
+func ensureZhLegacyDocAliases(targetDir string) error {
+	type fileAlias struct {
+		srcRel string
+		dstRel string
+	}
+	aliases := []fileAlias{
+		{srcRel: filepath.Join("docs", "1.架构拆解", "00_总览.md"), dstRel: filepath.Join("docs", "architecture", "00_overview.md")},
+		{srcRel: filepath.Join("docs", "1.架构拆解", "01_边界.md"), dstRel: filepath.Join("docs", "architecture", "01_boundary.md")},
+		{srcRel: filepath.Join("docs", "1.架构拆解", "02_驱动.md"), dstRel: filepath.Join("docs", "architecture", "02_driver.md")},
+		{srcRel: filepath.Join("docs", "1.架构拆解", "03_核心对象.md"), dstRel: filepath.Join("docs", "architecture", "03_core_objects.md")},
+		{srcRel: filepath.Join("docs", "1.架构拆解", "04_状态演化.md"), dstRel: filepath.Join("docs", "architecture", "04_state_evolution.md")},
+		{srcRel: filepath.Join("docs", "1.架构拆解", "05_协作.md"), dstRel: filepath.Join("docs", "architecture", "05_cooperation.md")},
+		{srcRel: filepath.Join("docs", "1.架构拆解", "06_约束.md"), dstRel: filepath.Join("docs", "architecture", "06_constraints.md")},
+		{srcRel: filepath.Join("docs", "1.架构拆解", "99_代码地图.md"), dstRel: filepath.Join("docs", "architecture", "99_code_map.md")},
+		{srcRel: filepath.Join("docs", "2.mini实现", "00_最小范围.md"), dstRel: filepath.Join("docs", "implementation", "00_mini_scope.md")},
+		{srcRel: filepath.Join("docs", "2.mini实现", "01_最小设计.md"), dstRel: filepath.Join("docs", "implementation", "01_mini_design.md")},
+		{srcRel: filepath.Join("docs", "2.mini实现", "02_构建计划.md"), dstRel: filepath.Join("docs", "implementation", "02_build_plan.md")},
+		{srcRel: filepath.Join("docs", "2.mini实现", "03_测试计划.md"), dstRel: filepath.Join("docs", "implementation", "03_test_plan.md")},
+		{srcRel: filepath.Join("docs", "3.报告", "00_报告大纲.md"), dstRel: filepath.Join("docs", "report", "00_report_outline.md")},
+	}
+	for _, a := range aliases {
+		src := filepath.Join(targetDir, a.srcRel)
+		dst := filepath.Join(targetDir, a.dstRel)
+		if err := copyMissingFile(src, dst); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func copyMissingFile(src, dst string) error {
+	content, err := os.ReadFile(src)
+	if err != nil {
+		return fmt.Errorf("read source file %s: %w", src, err)
+	}
+	if _, err := os.Stat(dst); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("stat target file %s: %w", dst, err)
+	}
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return fmt.Errorf("create target dir %s: %w", filepath.Dir(dst), err)
+	}
+	if err := os.WriteFile(dst, content, 0o644); err != nil {
+		return fmt.Errorf("write target file %s: %w", dst, err)
+	}
+	return nil
+}
+
 func gitignoreHas(lines []string, name string) bool {
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
@@ -196,4 +300,34 @@ func gitignoreHas(lines []string, name string) bool {
 		}
 	}
 	return false
+}
+
+func normalizeLanguage(language string) (string, error) {
+	value := strings.ToLower(strings.TrimSpace(language))
+	switch value {
+	case "", "zh", "zh-cn":
+		return LanguageZH, nil
+	case "en", "en-us":
+		return LanguageEN, nil
+	default:
+		return "", fmt.Errorf("unsupported language pack %q; use zh or en", language)
+	}
+}
+
+func writeLanguageConfig(targetDir, language string) error {
+	path := filepath.Join(targetDir, ".d2a", "language.json")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create language config dir %s: %w", filepath.Dir(path), err)
+	}
+	content, err := json.MarshalIndent(map[string]string{
+		"language": language,
+	}, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal language config: %w", err)
+	}
+	content = append(content, '\n')
+	if err := os.WriteFile(path, content, 0o644); err != nil {
+		return fmt.Errorf("write language config %s: %w", path, err)
+	}
+	return nil
 }

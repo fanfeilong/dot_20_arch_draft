@@ -34,6 +34,12 @@ mkdir -p build/install-smoke/project
 build/install-smoke/bin/d2a init build/install-smoke/project
 ```
 
+如需英文语言包：
+
+```bash
+build/install-smoke/bin/d2a init build/install-smoke/project-en --lang en
+```
+
 4. 检查初始化结果，确认 `.d2a` 工作目录已经生成：
 
 ```bash
@@ -42,13 +48,13 @@ find build/install-smoke/project -maxdepth 3 -type f | sort
 
 重点确认存在：
 
-- `.d2a/LAB.md`
-- `.d2a/docs/architecture/00_overview.md`
-- `.d2a/docs/implementation/00_mini_scope.md`
-- `.d2a/docs/report/00_report_outline.md`
-- `.d2a/src/README.md`
-- `.d2a/tests/README.md`
-- `.d2a/report/README.md`
+- `LAB.md`
+- `docs/architecture/00_overview.md`
+- `docs/implementation/00_mini_scope.md`
+- `docs/report/00_report_outline.md`
+- `src/README.md`
+- `tests/README.md`
+- `report/README.md`
 
 5. 检查初始化结果，确认至少生成以下内置 skill：
 
@@ -58,17 +64,16 @@ find build/install-smoke/project -type f | sort
 
 重点确认存在：
 
-- `.codex/skills/d2a-project-scope/SKILL.md`
-- `.codex/skills/d2a-runtime-view/SKILL.md`
-- `.codex/skills/d2a-core-objects/SKILL.md`
-- `.codex/skills/d2a-state-evolution/SKILL.md`
-- `.codex/skills/d2a-module-view/SKILL.md`
-- `.codex/skills/d2a-tradeoff-view/SKILL.md`
-- `.codex/skills/d2a-architecture-walkthrough/SKILL.md`
-- `.codex/skills/d2a-mini-scope/SKILL.md`
-- `.codex/skills/d2a-mini-design/SKILL.md`
-- `.codex/skills/d2a-mini-build/SKILL.md`
-- `.codex/skills/d2a-mini-test/SKILL.md`
+- `.codex/skills/d2a-arch-1-project-scope/SKILL.md`
+- `.codex/skills/d2a-arch-2-runtime-view/SKILL.md`
+- `.codex/skills/d2a-arch-3-core-objects/SKILL.md`
+- `.codex/skills/d2a-arch-4-state-evolution/SKILL.md`
+- `.codex/skills/d2a-arch-5-module-view/SKILL.md`
+- `.codex/skills/d2a-arch-6-tradeoff-view/SKILL.md`
+- `.codex/skills/d2a-mini-1-scope/SKILL.md`
+- `.codex/skills/d2a-mini-2-design/SKILL.md`
+- `.codex/skills/d2a-mini-3-build/SKILL.md`
+- `.codex/skills/d2a-mini-4-test/SKILL.md`
 - `.codex/skills/d2a-step/SKILL.md`
 - `.codex/skills/d2a-report-build/SKILL.md`
 - `.codex/skills/d2a-status/SKILL.md`

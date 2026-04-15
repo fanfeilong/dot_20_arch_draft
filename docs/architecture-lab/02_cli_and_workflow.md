@@ -10,8 +10,8 @@ The current CLI already supports:
 
 The staged CLI is:
 
-1. `d2a init <repo-dir>`
-2. `d2a analyze <target-repo> [--repo <repo-dir>]`
+1. `d2a init <target-repo-git-url>`
+2. `d2a analyze [<target-repo>] [--repo <repo-dir>]`
 3. `d2a derive-mini [--repo <repo-dir>] [--skip-challenge-reason <text>]`
 4. `d2a test-mini [--repo <repo-dir>]`
 5. `d2a report [--repo <repo-dir>]`
@@ -54,18 +54,17 @@ Start the local report static server.
 
 The current built-in skills should map to the analysis stage:
 
-- `d2a-project-scope`
-- `d2a-runtime-view`
-- `d2a-core-objects`
-- `d2a-state-evolution`
-- `d2a-module-view`
-- `d2a-tradeoff-view`
-- `d2a-architecture-walkthrough`
+- `d2a-arch-1-project-scope`
+- `d2a-arch-2-runtime-view`
+- `d2a-arch-3-core-objects`
+- `d2a-arch-4-state-evolution`
+- `d2a-arch-5-module-view`
+- `d2a-arch-6-tradeoff-view`
 
 Current implementation-focused skills:
 
-- `d2a-mini-scope`
-- `d2a-mini-design`
-- `d2a-mini-build`
-- `d2a-mini-test`
+- `d2a-mini-1-scope`
+- `d2a-mini-2-design`
+- `d2a-mini-3-build`
+- `d2a-mini-4-test`
 - `d2a-report-build`

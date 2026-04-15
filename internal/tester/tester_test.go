@@ -52,7 +52,7 @@ func TestPrepareTests(t *testing.T) {
 		t.Fatalf("expected test manifest %s: %v", manifestPath, err)
 	}
 
-	tasksPath := filepath.Join(repo, ".d2a", "tests", "01_integration_tasks.md")
+	tasksPath := filepath.Join(repo, "tests", "01_integration_tasks.md")
 	content, err := os.ReadFile(tasksPath)
 	if err != nil {
 		t.Fatalf("read integration tasks file: %v", err)

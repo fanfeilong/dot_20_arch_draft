@@ -51,7 +51,7 @@ func TestBuildReport(t *testing.T) {
 		t.Fatalf("unexpected resolved target: got %q want %q", resolved, target)
 	}
 
-	indexPath := filepath.Join(repo, ".d2a", "report", "index.md")
+	indexPath := filepath.Join(repo, "report", "index.md")
 	content, err := os.ReadFile(indexPath)
 	if err != nil {
 		t.Fatalf("read report index: %v", err)
@@ -61,12 +61,12 @@ func TestBuildReport(t *testing.T) {
 	}
 
 	for _, rel := range []string{
-		filepath.Join(".d2a", "report", "data", "summary.json"),
-		filepath.Join(".d2a", "report", "data", "target.json"),
-		filepath.Join(".d2a", "report", "data", "tests.json"),
-		filepath.Join(".d2a", "report", "data", "challenge.json"),
-		filepath.Join(".d2a", "report", "vue-app", "package.json"),
-		filepath.Join(".d2a", "report", "vue-app", "src", "App.vue"),
+		filepath.Join("report", "data", "summary.json"),
+		filepath.Join("report", "data", "target.json"),
+		filepath.Join("report", "data", "tests.json"),
+		filepath.Join("report", "data", "challenge.json"),
+		filepath.Join("report", "vue-app", "package.json"),
+		filepath.Join("report", "vue-app", "src", "App.vue"),
 	} {
 		if _, err := os.Stat(filepath.Join(repo, rel)); err != nil {
 			t.Fatalf("expected report data file %s: %v", rel, err)

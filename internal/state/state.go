@@ -121,6 +121,10 @@ type SkillUpdate struct {
 	Phase          string
 	QuestionIndex  int
 	QuestionTotal  int
+	Question       string
+	Answer         string
+	Evaluation     string
+	Explanation    string
 	NextStep       string
 	NextSkill      string
 	NextFile       string
@@ -129,6 +133,29 @@ type SkillUpdate struct {
 	Strength       string
 	Recommendation string
 	Objection      string
+}
+
+type QASnapshot struct {
+	Skill         string `json:"skill"`
+	Stage         string `json:"stage"`
+	Phase         string `json:"phase"`
+	QuestionIndex int    `json:"question_index"`
+	QuestionTotal int    `json:"question_total"`
+	UpdatedAt     string `json:"updated_at"`
+}
+
+type QAEvent struct {
+	Timestamp     string `json:"timestamp"`
+	Skill         string `json:"skill"`
+	Stage         string `json:"stage"`
+	Phase         string `json:"phase"`
+	QuestionIndex int    `json:"question_index"`
+	QuestionTotal int    `json:"question_total"`
+	Question      string `json:"question,omitempty"`
+	Answer        string `json:"answer,omitempty"`
+	Evaluation    string `json:"evaluation,omitempty"`
+	Explanation   string `json:"explanation,omitempty"`
+	Summary       string `json:"summary,omitempty"`
 }
 
 func Initialize(repoRoot string) (Snapshot, error) {
@@ -140,7 +167,7 @@ func Initialize(repoRoot string) (Snapshot, error) {
 	s := defaultSnapshot(repoRoot)
 	s.CurrentStage = StageInitialized
 	s.LastCommand = "d2a init"
-	s.NextStep = "Run d2a analyze <target-repo>."
+	s.NextStep = "Run d2a analyze."
 	s.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 
 	if err := writeSnapshot(s); err != nil {
@@ -310,6 +337,14 @@ func RecordSkill(repoRoot string, update SkillUpdate) (Snapshot, error) {
 			return Snapshot{}, err
 		}
 	}
+	if s.CurrentPhase == "confirmation-questions" {
+		if err := writeQASnapshot(s); err != nil {
+			return Snapshot{}, err
+		}
+		if err := appendQAEvent(s, update); err != nil {
+			return Snapshot{}, err
+		}
+	}
 
 	return s, nil
 }
@@ -364,14 +399,14 @@ func loadOrBootstrap(repoRoot string) (Snapshot, error) {
 		return Snapshot{}, err
 	}
 
-	d2aLabPath := filepath.Join(repoRoot, ".d2a", "LAB.md")
+	d2aLabPath := filepath.Join(repoRoot, "LAB.md")
 	if _, statErr := os.Stat(d2aLabPath); statErr != nil {
 		return Snapshot{}, err
 	}
 
 	s = defaultSnapshot(repoRoot)
 	s.CurrentStage = StageInitialized
-	s.NextStep = "Run d2a analyze <target-repo>."
+	s.NextStep = "Run d2a analyze."
 	s.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 	if err := writeSnapshot(s); err != nil {
 		return Snapshot{}, err
@@ -484,8 +519,8 @@ func SkipChallenge(repoRoot, reason string) (Snapshot, error) {
 	s.LastChallengeStrength = ""
 	s.ChallengeRecommendation = "skipped"
 	s.NextStep = "Proceed to d2a derive-mini."
-	s.NextSkill = "d2a-mini-scope"
-	s.NextFile = ".d2a/docs/implementation/00_mini_scope.md"
+	s.NextSkill = "d2a-mini-1-scope"
+	s.NextFile = "docs/implementation/00_mini_scope.md"
 	s.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 
 	if err := writeSnapshot(s); err != nil {
@@ -633,6 +668,71 @@ func challengeStatePath(repoRoot string) string {
 
 func challengeLogPath(repoRoot string) string {
 	return filepath.Join(repoRoot, ".d2a", "challenge_log.jsonl")
+}
+
+func writeQASnapshot(snapshot Snapshot) error {
+	qa := QASnapshot{
+		Skill:         snapshot.CurrentSkill,
+		Stage:         snapshot.CurrentStage,
+		Phase:         snapshot.CurrentPhase,
+		QuestionIndex: snapshot.QuestionIndex,
+		QuestionTotal: snapshot.QuestionTotal,
+		UpdatedAt:     snapshot.UpdatedAt,
+	}
+	content, err := json.MarshalIndent(qa, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal qa snapshot: %w", err)
+	}
+	content = append(content, '\n')
+	path := qaStatePath(snapshot.RepoPath, snapshot.CurrentSkill)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create qa dir %s: %w", filepath.Dir(path), err)
+	}
+	if err := os.WriteFile(path, content, 0o644); err != nil {
+		return fmt.Errorf("write qa snapshot %s: %w", path, err)
+	}
+	return nil
+}
+
+func appendQAEvent(snapshot Snapshot, update SkillUpdate) error {
+	event := QAEvent{
+		Timestamp:     snapshot.UpdatedAt,
+		Skill:         snapshot.CurrentSkill,
+		Stage:         snapshot.CurrentStage,
+		Phase:         snapshot.CurrentPhase,
+		QuestionIndex: snapshot.QuestionIndex,
+		QuestionTotal: snapshot.QuestionTotal,
+		Question:      update.Question,
+		Answer:        update.Answer,
+		Evaluation:    update.Evaluation,
+		Explanation:   update.Explanation,
+		Summary:       update.Summary,
+	}
+	content, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("marshal qa event: %w", err)
+	}
+	path := qaLogPath(snapshot.RepoPath, snapshot.CurrentSkill)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create qa dir %s: %w", filepath.Dir(path), err)
+	}
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return fmt.Errorf("open qa log file %s: %w", path, err)
+	}
+	defer file.Close()
+	if _, err := file.Write(append(content, '\n')); err != nil {
+		return fmt.Errorf("append qa log file %s: %w", path, err)
+	}
+	return nil
+}
+
+func qaStatePath(repoRoot, skill string) string {
+	return filepath.Join(repoRoot, ".d2a", "qa", skill+".json")
+}
+
+func qaLogPath(repoRoot, skill string) string {
+	return filepath.Join(repoRoot, ".d2a", "qa", skill+".jsonl")
 }
 
 func isChallengeStage(stage string) bool {

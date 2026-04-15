@@ -43,7 +43,7 @@ func TestDeriveMini(t *testing.T) {
 		t.Fatalf("unexpected resolved target: got %q want %q", resolved, target)
 	}
 
-	designPath := filepath.Join(repo, ".d2a", "docs", "implementation", "01_mini_design.md")
+	designPath := filepath.Join(repo, "docs", "implementation", "01_mini_design.md")
 	content, err := os.ReadFile(designPath)
 	if err != nil {
 		t.Fatalf("read mini design file: %v", err)
@@ -52,11 +52,11 @@ func TestDeriveMini(t *testing.T) {
 		t.Fatalf("mini design file does not mention target repo")
 	}
 
-	srcArchPath := filepath.Join(repo, ".d2a", "src", "ARCHITECTURE.md")
+	srcArchPath := filepath.Join(repo, "src", "ARCHITECTURE.md")
 	if _, err := os.Stat(srcArchPath); err != nil {
 		t.Fatalf("expected src architecture file %s: %v", srcArchPath, err)
 	}
-	goMiniMain := filepath.Join(repo, ".d2a", "src", "go-mini", "cmd", "mini", "main.go")
+	goMiniMain := filepath.Join(repo, "src", "go-mini", "cmd", "mini", "main.go")
 	if _, err := os.Stat(goMiniMain); err != nil {
 		t.Fatalf("expected go mini scaffold file %s: %v", goMiniMain, err)
 	}

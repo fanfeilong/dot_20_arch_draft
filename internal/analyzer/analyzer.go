@@ -9,9 +9,10 @@ import (
 )
 
 type metadata struct {
-	TargetRepo string `json:"target_repo"`
-	RepoRoot   string `json:"repo_root"`
-	D2APath    string `json:"d2a_path"`
+	TargetRepo    string `json:"target_repo"`
+	TargetRepoURL string `json:"target_repo_url,omitempty"`
+	RepoRoot      string `json:"repo_root"`
+	D2APath       string `json:"d2a_path"`
 }
 
 func Analyze(targetRepo, repoRoot string) (string, error) {
@@ -45,7 +46,10 @@ func Analyze(targetRepo, repoRoot string) (string, error) {
 	}
 
 	for rel, content := range architectureTasks(resolvedTarget) {
-		path := filepath.Join(d2aDir, filepath.FromSlash(rel))
+		path := filepath.Join(repoRoot, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return "", fmt.Errorf("create architecture dir %s: %w", filepath.Dir(path), err)
+		}
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return "", fmt.Errorf("write analysis file %s: %w", path, err)
 		}
@@ -55,7 +59,7 @@ func Analyze(targetRepo, repoRoot string) (string, error) {
 }
 
 func ensureD2ARepo(repoRoot string) error {
-	d2aFile := filepath.Join(repoRoot, ".d2a", "LAB.md")
+	d2aFile := filepath.Join(repoRoot, "LAB.md")
 	if _, err := os.Stat(d2aFile); err != nil {
 		if os.IsNotExist(err) {
 			return fmt.Errorf("d2a not initialized in repository: %s", repoRoot)
@@ -129,7 +133,7 @@ func sharedHeader(title, target, skill string) string {
 }
 
 func overviewTask(target string) string {
-	return sharedHeader("00. Overview", target, "d2a-architecture-walkthrough") + `## To Produce
+	return sharedHeader("00. Overview", target, "d2a-step") + `## To Produce
 
 - One-sentence system definition
 - The one capability that must remain if 80% of the code were deleted
@@ -148,7 +152,7 @@ func overviewTask(target string) string {
 }
 
 func boundaryTask(target string) string {
-	return sharedHeader("01. Boundary", target, "d2a-project-scope") + `## Atomic Questions
+	return sharedHeader("01. Boundary", target, "d2a-arch-1-project-scope") + `## Atomic Questions
 
 1. What kind of system is this?
 2. What is the one-sentence definition?
@@ -160,7 +164,7 @@ func boundaryTask(target string) string {
 }
 
 func driverTask(target string) string {
-	return sharedHeader("02. Driver", target, "d2a-runtime-view") + `## Atomic Questions
+	return sharedHeader("02. Driver", target, "d2a-arch-2-runtime-view") + `## Atomic Questions
 
 1. What is the dominant runtime driver?
 2. What is the core runtime loop?
@@ -170,7 +174,7 @@ func driverTask(target string) string {
 }
 
 func coreObjectsTask(target string) string {
-	return sharedHeader("03. Core Objects", target, "d2a-core-objects") + `## Atomic Questions
+	return sharedHeader("03. Core Objects", target, "d2a-arch-3-core-objects") + `## Atomic Questions
 
 1. What are the at most three core objects?
 2. Who creates, consumes, persists, or drives them?
@@ -179,7 +183,7 @@ func coreObjectsTask(target string) string {
 }
 
 func stateEvolutionTask(target string) string {
-	return sharedHeader("04. State Evolution", target, "d2a-state-evolution") + `## Atomic Questions
+	return sharedHeader("04. State Evolution", target, "d2a-arch-4-state-evolution") + `## Atomic Questions
 
 1. What single object or workflow should be tracked?
 2. What are its three to six state stages?
@@ -189,7 +193,7 @@ func stateEvolutionTask(target string) string {
 }
 
 func cooperationTask(target string) string {
-	return sharedHeader("05. Cooperation", target, "d2a-module-view") + `## Atomic Questions
+	return sharedHeader("05. Cooperation", target, "d2a-arch-5-module-view") + `## Atomic Questions
 
 1. What are the three to six top-level modules?
 2. What is the responsibility of each module?
@@ -200,7 +204,7 @@ func cooperationTask(target string) string {
 }
 
 func constraintsTask(target string) string {
-	return sharedHeader("06. Constraints", target, "d2a-tradeoff-view") + `## Atomic Questions
+	return sharedHeader("06. Constraints", target, "d2a-arch-6-tradeoff-view") + `## Atomic Questions
 
 1. What are the two to four hard constraints?
 2. Which one is dominant?
@@ -211,7 +215,7 @@ func constraintsTask(target string) string {
 }
 
 func codeMapTask(target string) string {
-	return sharedHeader("99. Code Map", target, "d2a-architecture-walkthrough") + `## To Produce
+	return sharedHeader("99. Code Map", target, "d2a-step") + `## To Produce
 
 - Claim-to-code mapping for the six architecture elements
 - A suggested reading order

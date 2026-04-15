@@ -30,7 +30,7 @@ func TestAnalyze(t *testing.T) {
 		t.Fatalf("expected metadata file %s: %v", metaPath, err)
 	}
 
-	overviewPath := filepath.Join(repo, ".d2a", "docs", "architecture", "00_overview.md")
+	overviewPath := filepath.Join(repo, "docs", "architecture", "00_overview.md")
 	content, err := os.ReadFile(overviewPath)
 	if err != nil {
 		t.Fatalf("read overview file: %v", err)
@@ -40,7 +40,7 @@ func TestAnalyze(t *testing.T) {
 	if !strings.Contains(text, target) {
 		t.Fatalf("overview file does not mention target repo: %q", text)
 	}
-	if !strings.Contains(text, "d2a-architecture-walkthrough") {
+	if !strings.Contains(text, "d2a-step") {
 		t.Fatalf("overview file does not mention primary skill: %q", text)
 	}
 }

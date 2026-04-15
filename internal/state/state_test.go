@@ -3,6 +3,7 @@ package state
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestInitializeAndRecordCommand(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(repo, ".d2a"), 0o755); err != nil {
 		t.Fatalf("MkdirAll returned error: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".d2a", "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile returned error: %v", err)
 	}
 
@@ -35,7 +36,7 @@ func TestInitializeAndRecordCommand(t *testing.T) {
 	}
 
 	s, err = RecordSkill(repo, SkillUpdate{
-		Skill:         "d2a-project-scope",
+		Skill:         "d2a-arch-1-project-scope",
 		Status:        "progress",
 		Stage:         StageAnalysisPrepared,
 		Phase:         "confirmation-questions",
@@ -47,7 +48,7 @@ func TestInitializeAndRecordCommand(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RecordSkill returned error: %v", err)
 	}
-	if s.CurrentSkill != "d2a-project-scope" {
+	if s.CurrentSkill != "d2a-arch-1-project-scope" {
 		t.Fatalf("unexpected current skill: %q", s.CurrentSkill)
 	}
 	if s.CurrentPhase != "confirmation-questions" {
@@ -64,7 +65,7 @@ func TestInitializeAndRecordCommand(t *testing.T) {
 	if len(history) != 3 {
 		t.Fatalf("unexpected history length: got %d want 3", len(history))
 	}
-	if history[len(history)-1].ActorName != "d2a-project-scope" {
+	if history[len(history)-1].ActorName != "d2a-arch-1-project-scope" {
 		t.Fatalf("unexpected final history event: %+v", history[len(history)-1])
 	}
 }
@@ -74,7 +75,7 @@ func TestRecordChallengeSkill(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(repo, ".d2a"), 0o755); err != nil {
 		t.Fatalf("MkdirAll returned error: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".d2a", "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile returned error: %v", err)
 	}
 
@@ -120,12 +121,59 @@ func TestRecordChallengeSkill(t *testing.T) {
 	}
 }
 
+func TestRecordSkillPersistsQAArtifactsDuringConfirmation(t *testing.T) {
+	repo := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(repo, ".d2a"), 0o755); err != nil {
+		t.Fatalf("MkdirAll returned error: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile returned error: %v", err)
+	}
+	if _, err := Initialize(repo); err != nil {
+		t.Fatalf("Initialize returned error: %v", err)
+	}
+
+	if _, err := RecordSkill(repo, SkillUpdate{
+		Skill:         "d2a-arch-2-runtime-view",
+		Status:        "progress",
+		Stage:         StageArchitectureInProgress,
+		Phase:         "confirmation-questions",
+		QuestionIndex: 1,
+		QuestionTotal: 4,
+		Question:      "What is the dominant runtime driver?",
+		Answer:        "B",
+		Evaluation:    "partial",
+		Explanation:   "The loop trigger was close but not exact.",
+		Summary:       "Question 1 reviewed.",
+	}); err != nil {
+		t.Fatalf("RecordSkill returned error: %v", err)
+	}
+
+	qaStatePath := filepath.Join(repo, ".d2a", "qa", "d2a-arch-2-runtime-view.json")
+	if _, err := os.Stat(qaStatePath); err != nil {
+		t.Fatalf("expected qa state file %s: %v", qaStatePath, err)
+	}
+
+	qaLogPath := filepath.Join(repo, ".d2a", "qa", "d2a-arch-2-runtime-view.jsonl")
+	content, err := os.ReadFile(qaLogPath)
+	if err != nil {
+		t.Fatalf("read qa log file: %v", err)
+	}
+	text := string(content)
+	if !strings.Contains(text, `"evaluation":"partial"`) {
+		t.Fatalf("qa log does not contain evaluation: %q", text)
+	}
+	if !strings.Contains(text, `"question":"What is the dominant runtime driver?"`) {
+		t.Fatalf("qa log does not contain question: %q", text)
+	}
+}
+
 func TestRecordCommandRejectsUnknownStage(t *testing.T) {
 	repo := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(repo, ".d2a"), 0o755); err != nil {
 		t.Fatalf("MkdirAll returned error: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".d2a", "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile returned error: %v", err)
 	}
 	if _, err := Initialize(repo); err != nil {
@@ -142,7 +190,7 @@ func TestRecordSkillRejectsStageRegression(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(repo, ".d2a"), 0o755); err != nil {
 		t.Fatalf("MkdirAll returned error: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".d2a", "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile returned error: %v", err)
 	}
 	if _, err := Initialize(repo); err != nil {
@@ -153,7 +201,7 @@ func TestRecordSkillRejectsStageRegression(t *testing.T) {
 	}
 
 	if _, err := RecordSkill(repo, SkillUpdate{
-		Skill:   "d2a-mini-scope",
+		Skill:   "d2a-mini-1-scope",
 		Status:  "progress",
 		Stage:   StageMiniDerivationPrepared,
 		Summary: "Try to regress stage.",

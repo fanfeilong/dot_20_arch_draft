@@ -1,11 +1,15 @@
 package cli
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/fanfeilong/dot_20_arch_draft/internal/analyzer"
 	"github.com/fanfeilong/dot_20_arch_draft/internal/deriver"
@@ -20,14 +24,14 @@ const usage = `d2a initializes a repository-root workflow and installs built-in 
 
 Usage:
   d2a help
-  d2a init <repo-dir>
-  d2a analyze <target-repo> [--repo <repo-dir>]
+  d2a init <target-repo-git-url> [--lang <zh|en>]
+  d2a analyze [<target-repo>] [--repo <repo-dir>]
   d2a derive-mini [--repo <repo-dir>] [--skip-challenge-reason <text>]
   d2a test-mini [--repo <repo-dir>]
   d2a report [--repo <repo-dir>]
   d2a serve [--repo <repo-dir>]
   d2a status [--repo <repo-dir>]
-  d2a skill-state <skill-name> [--repo <repo-dir>] [--status <started|progress|completed>] [--stage <stage>] [--phase <phase>] [--question-index <n>] [--question-total <n>] [--next-step <text>] [--next-skill <name>] [--next-file <path>] [--decision <label>] [--strength <strong|partial|weak>] [--recommendation <proceed|review|revisit architecture>] [--objection <text>] [--summary <text>]
+  d2a skill-state <skill-name> [--repo <repo-dir>] [--status <started|progress|completed>] [--stage <stage>] [--phase <phase>] [--question-index <n>] [--question-total <n>] [--question <text>] [--answer <text>] [--evaluation <correct|partial|incorrect>] [--explanation <text>] [--next-step <text>] [--next-skill <name>] [--next-file <path>] [--decision <label>] [--strength <strong|partial|weak>] [--recommendation <proceed|review|revisit architecture>] [--objection <text>] [--summary <text>]
   d2a version
 `
 
@@ -35,6 +39,13 @@ type repoContext struct {
 	Name    string
 	RepoDir string
 	D2APath string
+}
+
+type initTargetMetadata struct {
+	TargetRepo    string `json:"target_repo"`
+	TargetRepoURL string `json:"target_repo_url,omitempty"`
+	RepoRoot      string `json:"repo_root"`
+	D2APath       string `json:"d2a_path"`
 }
 
 func Run(args []string, version string) error {
@@ -55,27 +66,55 @@ func runWithIO(args []string, stdout io.Writer, version string) error {
 		_, err := fmt.Fprintf(stdout, "%s\n", version)
 		return err
 	case "init":
-		if len(args) != 2 {
-			return errors.New("init requires exactly one repository directory")
+		targetRepoURL, language, err := parseInitArgs(args)
+		if err != nil {
+			return err
+		}
+		repoName, err := parseRepoNameFromGitURL(targetRepoURL)
+		if err != nil {
+			return err
 		}
 
-		ctx, err := initRepoContext(args[1])
+		workspaceDir, err := filepath.Abs(repoName + "_d2a")
+		if err != nil {
+			return fmt.Errorf("resolve workspace path: %w", err)
+		}
+		ctx, err := initRepoContext(workspaceDir)
 		if err != nil {
 			return err
 		}
 		if err := printRepoHeader(stdout, ctx); err != nil {
 			return err
 		}
+		if _, err := fmt.Fprintf(stdout, "target repo url: %s\n", targetRepoURL); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(stdout, "d2a language: %s\n", language); err != nil {
+			return err
+		}
 
-		target, err := installer.Install(args[1])
+		target, err := installer.InstallWithLanguage(workspaceDir, language)
 		if err != nil {
+			return err
+		}
+		if err := ensureWorkspaceGitRepo(target); err != nil {
+			return err
+		}
+		clonedRepoPath, err := cloneTargetRepo(targetRepoURL, target, repoName)
+		if err != nil {
+			return err
+		}
+		if err := writeInitTargetMetadata(target, targetRepoURL, clonedRepoPath); err != nil {
+			return err
+		}
+		if err := writeAgentsFile(target); err != nil {
 			return err
 		}
 		if _, err := state.Initialize(target); err != nil {
 			return err
 		}
 
-		_, err = fmt.Fprintf(stdout, "initialized d2a in repository %s\n", target)
+		_, err = fmt.Fprintf(stdout, "initialized d2a workspace %s\ncloned target repo to %s\n", target, clonedRepoPath)
 		return err
 	case "analyze":
 		targetRepo, explicitRepo, err := parseAnalyzeArgs(args)
@@ -90,6 +129,12 @@ func runWithIO(args []string, stdout io.Writer, version string) error {
 		if err := printRepoHeader(stdout, ctx); err != nil {
 			return err
 		}
+		if targetRepo == "" {
+			targetRepo, err = resolveDefaultTargetRepo(ctx.RepoDir)
+			if err != nil {
+				return err
+			}
+		}
 
 		target, err := analyzer.Analyze(targetRepo, ctx.RepoDir)
 		if err != nil {
@@ -99,8 +144,8 @@ func runWithIO(args []string, stdout io.Writer, version string) error {
 			ctx.RepoDir,
 			"d2a analyze",
 			state.StageAnalysisPrepared,
-			"Use d2a architecture skills to fill .d2a/docs/architecture/.",
-			"Prepared architecture analysis task files under .d2a/docs/architecture/.",
+			"Use d2a architecture skills to fill docs/architecture/.",
+			"Prepared architecture analysis task files under docs/architecture/.",
 		); err != nil {
 			return err
 		}
@@ -134,8 +179,8 @@ func runWithIO(args []string, stdout io.Writer, version string) error {
 			ctx.RepoDir,
 			"d2a derive-mini",
 			state.StageMiniDerivationPrepared,
-			"Use d2a mini skills to fill .d2a/docs/implementation/ and .d2a/src/ARCHITECTURE.md.",
-			"Prepared mini-implementation planning files under .d2a/docs/implementation/.",
+			"Use d2a mini skills to fill docs/implementation/ and src/ARCHITECTURE.md.",
+			"Prepared mini-implementation planning files under docs/implementation/.",
 		); err != nil {
 			return err
 		}
@@ -164,8 +209,8 @@ func runWithIO(args []string, stdout io.Writer, version string) error {
 			ctx.RepoDir,
 			"d2a test-mini",
 			state.StageTestPlanPrepared,
-			"Use d2a testing skills to fill .d2a/tests/ and create the first integration checks.",
-			"Prepared test-planning files under .d2a/tests/.",
+			"Use d2a testing skills to fill tests/ and create the first integration checks.",
+			"Prepared test-planning files under tests/.",
 		); err != nil {
 			return err
 		}
@@ -195,7 +240,7 @@ func runWithIO(args []string, stdout io.Writer, version string) error {
 			"d2a report",
 			state.StageReportPrepared,
 			"Use d2a-report-build to refine report content, then run d2a serve.",
-			"Prepared report artifacts under .d2a/report/.",
+			"Prepared report artifacts under report/.",
 		); err != nil {
 			return err
 		}
@@ -296,12 +341,12 @@ func resolveRepoContext(explicit string) (repoContext, error) {
 		return repoContext{}, fmt.Errorf("resolve repo path: %w", err)
 	}
 
-	d2aFile := filepath.Join(path, ".d2a", "LAB.md")
+	d2aFile := filepath.Join(path, "LAB.md")
 	if _, err := os.Stat(d2aFile); err != nil {
 		if explicit == "" {
-			return repoContext{}, errors.New("no active d2a repository could be determined; run this command inside a repository with .d2a initialized or specify --repo <repo-dir>")
+			return repoContext{}, errors.New("no active d2a workspace could be determined; run this command inside a d2a workspace or specify --repo <repo-dir>")
 		}
-		return repoContext{}, fmt.Errorf("specified repository is not initialized for d2a: %s", path)
+		return repoContext{}, fmt.Errorf("specified repository is not initialized for d2a workspace: %s", path)
 	}
 
 	return repoContext{
@@ -401,16 +446,37 @@ func stateIsChallenge(stage string) bool {
 }
 
 func parseAnalyzeArgs(args []string) (targetRepo, explicitRepo string, err error) {
-	if len(args) != 2 && len(args) != 4 {
-		return "", "", errors.New("analyze requires: d2a analyze <target-repo> [--repo <repo-dir>]")
-	}
-	if len(args) == 4 {
+	switch len(args) {
+	case 1:
+		return "", "", nil
+	case 2:
+		if args[1] == "--repo" {
+			return "", "", errors.New("analyze requires: d2a analyze [<target-repo>] [--repo <repo-dir>]")
+		}
+		return args[1], "", nil
+	case 3:
+		if args[1] != "--repo" {
+			return "", "", errors.New("analyze requires: d2a analyze [<target-repo>] [--repo <repo-dir>]")
+		}
+		return "", args[2], nil
+	case 4:
 		if args[2] != "--repo" {
-			return "", "", errors.New("analyze requires: d2a analyze <target-repo> [--repo <repo-dir>]")
+			return "", "", errors.New("analyze requires: d2a analyze [<target-repo>] [--repo <repo-dir>]")
 		}
 		return args[1], args[3], nil
+	default:
+		return "", "", errors.New("analyze requires: d2a analyze [<target-repo>] [--repo <repo-dir>]")
 	}
-	return args[1], "", nil
+}
+
+func parseInitArgs(args []string) (targetRepoURL, language string, err error) {
+	if len(args) == 2 {
+		return args[1], installer.LanguageZH, nil
+	}
+	if len(args) == 4 && args[2] == "--lang" {
+		return args[1], args[3], nil
+	}
+	return "", "", errors.New("init requires: d2a init <target-repo-git-url> [--lang <zh|en>]")
 }
 
 func parseOptionalRepoArgs(cmd string, args []string) (string, error) {
@@ -492,6 +558,14 @@ func parseSkillStateArgs(args []string) (string, string, state.SkillUpdate, erro
 			update.NextSkill = value
 		case "--next-file":
 			update.NextFile = value
+		case "--question":
+			update.Question = value
+		case "--answer":
+			update.Answer = value
+		case "--evaluation":
+			update.Evaluation = value
+		case "--explanation":
+			update.Explanation = value
 		case "--summary":
 			update.Summary = value
 		case "--decision":
@@ -516,4 +590,121 @@ func parseNonNegativeInt(value, flag string) (int, error) {
 		return 0, fmt.Errorf("%s requires a non-negative integer", flag)
 	}
 	return n, nil
+}
+
+func parseRepoNameFromGitURL(raw string) (string, error) {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return "", errors.New("target repo git url must not be empty")
+	}
+	if !isGitURL(value) {
+		return "", fmt.Errorf("init requires a git repo url, got %q", raw)
+	}
+
+	path := value
+	if u, err := url.Parse(value); err == nil && u.Scheme != "" {
+		path = u.Path
+	}
+	path = strings.TrimSuffix(path, "/")
+	base := filepath.Base(path)
+	base = strings.TrimSuffix(base, ".git")
+	base = strings.TrimSpace(base)
+	if base == "" || base == "." || base == string(filepath.Separator) {
+		return "", fmt.Errorf("cannot determine repo name from git url %q", raw)
+	}
+	return base, nil
+}
+
+func isGitURL(value string) bool {
+	if strings.Contains(value, "://") {
+		return true
+	}
+	return strings.HasPrefix(value, "git@")
+}
+
+func ensureWorkspaceGitRepo(repoRoot string) error {
+	if _, err := os.Stat(filepath.Join(repoRoot, ".git")); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("check workspace git dir: %w", err)
+	}
+	cmd := exec.Command("git", "init", repoRoot)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("initialize workspace git repository: %w: %s", err, strings.TrimSpace(string(output)))
+	}
+	return nil
+}
+
+func cloneTargetRepo(targetRepoURL, repoRoot, repoName string) (string, error) {
+	reposRoot := filepath.Join(repoRoot, "repos")
+	if err := os.MkdirAll(reposRoot, 0o755); err != nil {
+		return "", fmt.Errorf("create repos dir %s: %w", reposRoot, err)
+	}
+	targetPath := filepath.Join(reposRoot, repoName)
+	if _, err := os.Stat(targetPath); err == nil {
+		return targetPath, nil
+	} else if !os.IsNotExist(err) {
+		return "", fmt.Errorf("check target repo path %s: %w", targetPath, err)
+	}
+	cmd := exec.Command("git", "clone", "--depth", "1", targetRepoURL, targetPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("clone target repository: %w: %s", err, strings.TrimSpace(string(output)))
+	}
+	return targetPath, nil
+}
+
+func writeInitTargetMetadata(repoRoot, targetRepoURL, targetRepoPath string) error {
+	path := filepath.Join(repoRoot, ".d2a", "target.json")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create target metadata dir %s: %w", filepath.Dir(path), err)
+	}
+	content, err := json.MarshalIndent(initTargetMetadata{
+		TargetRepo:    targetRepoPath,
+		TargetRepoURL: targetRepoURL,
+		RepoRoot:      repoRoot,
+		D2APath:       filepath.Join(repoRoot, ".d2a"),
+	}, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal target metadata: %w", err)
+	}
+	content = append(content, '\n')
+	if err := os.WriteFile(path, content, 0o644); err != nil {
+		return fmt.Errorf("write target metadata %s: %w", path, err)
+	}
+	return nil
+}
+
+func resolveDefaultTargetRepo(repoRoot string) (string, error) {
+	path := filepath.Join(repoRoot, ".d2a", "target.json")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", errors.New("target repository is not configured; run d2a init <target-repo-git-url> again or pass d2a analyze <target-repo>")
+		}
+		return "", fmt.Errorf("read target metadata %s: %w", path, err)
+	}
+	var meta initTargetMetadata
+	if err := json.Unmarshal(content, &meta); err != nil {
+		return "", fmt.Errorf("parse target metadata %s: %w", path, err)
+	}
+	if strings.TrimSpace(meta.TargetRepo) == "" {
+		return "", fmt.Errorf("target metadata missing target_repo: %s", path)
+	}
+	return meta.TargetRepo, nil
+}
+
+func writeAgentsFile(repoRoot string) error {
+	path := filepath.Join(repoRoot, "AGENTS.md")
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("check AGENTS.md %s: %w", path, err)
+	}
+	content := "# AGENTS\n\n## Rules\n\n1. Use `d2a-step` as the primary orchestration skill in every turn.\n"
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("write AGENTS.md %s: %w", path, err)
+	}
+	return nil
 }

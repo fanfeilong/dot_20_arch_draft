@@ -43,6 +43,7 @@ When the skill enters the confirmation-question phase, it must:
 2. ask one multiple-choice question at a time
 3. show question progress such as `2/5`
 4. evaluate the answer before moving to the next question
+5. persist question-turn records under `.d2a/qa/<skill>.jsonl`
 
 When the skill enters the challenge phase, it must:
 
@@ -61,6 +62,12 @@ At the end of every skill run, the AI coding tool must summarize:
 3. what the next step should be
 4. which file or command should be used next
 5. a short `理解度打分`
+
+And it must keep architecture artifacts clean:
+
+- write architecture conclusions to `docs/architecture/*.md`
+- keep confirmation question content out of architecture docs
+- store confirmation traces only in `.d2a/qa/*`
 
 ## Failure Rule
 

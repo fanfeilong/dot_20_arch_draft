@@ -6,17 +6,17 @@
 
 ## What Is d2a
 
-`d2a` 是一个面向开源项目架构拆解的 repository-root 工作流工具。
+`d2a` 是一个面向开源项目架构拆解的 workspace-root 工作流工具。
 
 它的核心目标是降低获取门槛：
 
 - 用户不需要手动拷贝 prompt 或模板
 - 用户不需要自己维护多套 agent 配置
-- 用户只需要在目标仓库根目录执行一个初始化命令，就可以创建 `.d2a` 工作目录，并安装内置的 `d2a-*` skills
+- 用户只需要执行一个初始化命令，就可以创建独立的 `<target>_d2a` 工作区，并安装内置的 `d2a-*` skills
 
 ## Product Goal
 
-通过 `d2a`，用户可以在一个项目仓库中快速得到一个用于“架构拆解”的 `.d2a` 工作目录，其中包含内置 skills、分析文档模板、实现目录、测试目录和报告目录，并在 Codex、Claude、Cursor、OpenCode、Trae、NeoCode 等目录约定下复用。
+通过 `d2a`，用户可以快速得到一个用于“架构拆解”的独立工作区目录，其中包含内置 skills、分析文档模板、实现目录、测试目录、报告目录和 `repos/` 输入仓库目录，并在 Codex、Claude、Cursor、OpenCode、Trae、NeoCode 等目录约定下复用。
 
 这些 skills 最终服务于一个统一目标：
 
@@ -31,8 +31,8 @@
 
 ```text
 d2a help
-d2a init <repo-dir>
-d2a analyze <target-repo> [--repo <repo-dir>]
+d2a init <target-repo-git-url> [--lang <zh|en>]
+d2a analyze [<target-repo>] [--repo <repo-dir>]
 d2a derive-mini [--repo <repo-dir>] [--skip-challenge-reason <text>]
 d2a test-mini [--repo <repo-dir>]
 d2a report [--repo <repo-dir>]
@@ -80,29 +80,36 @@ Windows 默认安装到 `$env:LOCALAPPDATA\d2a\bin\d2a.exe`。
 
 ## init Command
 
-`d2a init <repo-dir>` 会在目标仓库根目录下初始化 d2a 工作区。
+`d2a init <target-repo-git-url>` 会在当前目录创建 `<target-repo-name>_d2a` 工作区，并将目标仓库浅克隆到 `repos/<target-repo-name>/`。
+
+语言包：
+
+- `--lang zh`：安装中文 skill 包（默认）
+- `--lang en`：安装英文 skill 包
 
 当前会创建：
 
 - 多家 agent 的 `skills` 目录
-- `.d2a/docs/architecture`
-- `.d2a/docs/implementation`
-- `.d2a/docs/report`
-- `.d2a/src`
-- `.d2a/tests`
-- `.d2a/report`
-- `.d2a/LAB.md`
+- `docs/architecture`
+- `docs/implementation`
+- `docs/report`
+- `src`
+- `tests`
+- `report`
+- `repos/<target-repo-name>`（浅克隆）
+- `LAB.md`
+- `.d2a/state.json`、`.d2a/history.jsonl`（状态元数据）
 
 在 d2a 初始化完成后，可以继续运行：
 
 ```bash
-d2a analyze <target-repo> [--repo <repo-dir>]
+d2a analyze [<target-repo>] [--repo <repo-dir>]
 ```
 
 当前这一步会：
 
-- 将目标仓库记录到 `<repo-dir>/.d2a/target.json`
-- 将 `.d2a/docs/architecture/*.md` 改写成带目标仓库、主 skill、原子问题和输出约束的分析入口文件
+- 将目标仓库记录到 `<repo-dir>/.d2a/target.json`（`init` 已写入，`analyze` 可覆盖）
+- 将 `docs/architecture/*.md` 改写成带目标仓库、主 skill、原子问题和输出约束的分析入口文件
 - 为后续在 AI Coding 工具中逐步填写 architecture docs 提供稳定落点
 
 在 architecture docs 有了稳定落点后，可以继续运行：
@@ -114,10 +121,10 @@ d2a derive-mini [--repo <repo-dir>] [--skip-challenge-reason <text>]
 当前这一步会：
 
 - 默认要求 challenge phase 已经完成
-- 将 `.d2a/docs/implementation/*.md` 改写成面向 mini implementation 的任务入口文件
+- 将 `docs/implementation/*.md` 改写成面向 mini implementation 的任务入口文件
 - 为 mini 版本的 scope、design、build plan、test plan 建立固定文档落点
-- 生成 `.d2a/src/ARCHITECTURE.md`，作为后续 `.d2a/src/` 实现的总纲入口
-- 生成首个可运行栈样板 `.d2a/src/go-mini/`（Go）
+- 生成 `src/ARCHITECTURE.md`，作为后续 `src/` 实现的总纲入口
+- 生成首个可运行栈样板 `src/go-mini/`（Go）
 
 如果确实需要跳过 challenge phase，必须显式传：
 
@@ -135,8 +142,8 @@ d2a test-mini [--repo <repo-dir>]
 
 当前这一步会：
 
-- 将 `.d2a/tests/README.md` 改写成面向 mini implementation 的测试总入口
-- 生成 `.d2a/tests/01_integration_tasks.md`，用于定义第一个端到端测试和后续集成场景
+- 将 `tests/README.md` 改写成面向 mini implementation 的测试总入口
+- 生成 `tests/01_integration_tasks.md`，用于定义第一个端到端测试和后续集成场景
 - 生成 `.d2a/test-mini.json`，明确测试阶段的输入和输出文件
 
 在测试规划完成后，可以继续运行：
@@ -147,13 +154,13 @@ d2a report [--repo <repo-dir>]
 
 当前这一步会：
 
-- 生成 `.d2a/report/data/summary.json`
-- 生成 `.d2a/report/data/target.json`
-- 生成 `.d2a/report/data/tests.json`
-- 生成 `.d2a/report/data/challenge.json`
-- 生成 `.d2a/report/index.md`
-- 生成 `.d2a/report/index.html`
-- 确保 `.d2a/report/vue-app/` Vue 骨架存在（缺失时自动补齐）
+- 生成 `report/data/summary.json`
+- 生成 `report/data/target.json`
+- 生成 `report/data/tests.json`
+- 生成 `report/data/challenge.json`
+- 生成 `report/index.md`
+- 生成 `report/index.html`
+- 确保 `report/vue-app/` Vue 骨架存在（缺失时自动补齐）
 
 当前这一步的目标是建立稳定数据接口，并提供两个展示层：
 
@@ -168,9 +175,9 @@ d2a serve [--repo <repo-dir>]
 
 当前这一步会：
 
-- 校验 `.d2a/report/index.html` 已存在
+- 校验 `report/index.html` 已存在
 - 启动本地静态服务
-- 暴露 `.d2a/report/index.html` 与 `.d2a/report/data/*.json`
+- 暴露 `report/index.html` 与 `report/data/*.json`
 
 当前这一步提供的是一个最小可浏览的本地报告页，为后续 Vue 报告应用留出稳定路径和数据接口。
 
@@ -214,49 +221,47 @@ d2a skill-state <skill-name> ...
 
 ```text
 <repo-dir>/
-  .codex/skills/d2a-project-scope/SKILL.md
-  .codex/skills/d2a-runtime-view/SKILL.md
-  .codex/skills/d2a-core-objects/SKILL.md
-  .codex/skills/d2a-state-evolution/SKILL.md
-  .codex/skills/d2a-module-view/SKILL.md
-  .codex/skills/d2a-tradeoff-view/SKILL.md
-  .codex/skills/d2a-architecture-walkthrough/SKILL.md
-  .codex/skills/d2a-mini-scope/SKILL.md
-  .codex/skills/d2a-mini-design/SKILL.md
-  .codex/skills/d2a-mini-build/SKILL.md
-  .codex/skills/d2a-mini-test/SKILL.md
+  .codex/skills/d2a-arch-1-project-scope/SKILL.md
+  .codex/skills/d2a-arch-2-runtime-view/SKILL.md
+  .codex/skills/d2a-arch-3-core-objects/SKILL.md
+  .codex/skills/d2a-arch-4-state-evolution/SKILL.md
+  .codex/skills/d2a-arch-5-module-view/SKILL.md
+  .codex/skills/d2a-arch-6-tradeoff-view/SKILL.md
+  .codex/skills/d2a-mini-1-scope/SKILL.md
+  .codex/skills/d2a-mini-2-design/SKILL.md
+  .codex/skills/d2a-mini-3-build/SKILL.md
+  .codex/skills/d2a-mini-4-test/SKILL.md
   .codex/skills/d2a-step/SKILL.md
   .codex/skills/d2a-report-build/SKILL.md
   .codex/skills/d2a-status/SKILL.md
   .codex/skills/d2a-challenge-architecture/SKILL.md
-  .d2a/LAB.md
-  .d2a/docs/architecture/00_overview.md
-  .d2a/docs/implementation/00_mini_scope.md
-  .d2a/docs/report/00_report_outline.md
-  .d2a/src/README.md
-  .d2a/tests/README.md
-  .d2a/report/README.md
-  .claude/skills/d2a-project-scope/SKILL.md
+  LAB.md
+  docs/architecture/00_overview.md
+  docs/implementation/00_mini_scope.md
+  docs/report/00_report_outline.md
+  src/README.md
+  tests/README.md
+  report/README.md
+  .claude/skills/d2a-arch-1-project-scope/SKILL.md
 ```
 
 ## Built-in Skills
 
 当前脚手架先内置一组最小 skills：
 
-- `d2a-project-scope`: 对应六要素中的“边界”
-- `d2a-runtime-view`: 对应六要素中的“驱动”
-- `d2a-core-objects`: 对应六要素中的“核心对象”
-- `d2a-state-evolution`: 对应六要素中的“状态演化 / 状态机”
-- `d2a-module-view`: 对应六要素中的“协作”
-- `d2a-tradeoff-view`: 对应六要素中的“约束 / 取舍”
-- `d2a-architecture-walkthrough`: 总控 skill，负责按顺序串联上述六要素、收束 `00_overview.md` 与 `99_code_map.md`，并将分析阶段推进到 `architecture-complete`
-- `d2a-mini-scope`: mini implementation 范围收敛入口
-- `d2a-mini-design`: mini implementation 设计入口
-- `d2a-mini-build`: mini implementation 实现入口
-- `d2a-mini-test`: mini integration testing 入口
+- `d2a-arch-1-project-scope`: 对应六要素中的“边界”
+- `d2a-arch-2-runtime-view`: 对应六要素中的“驱动”
+- `d2a-arch-3-core-objects`: 对应六要素中的“核心对象”
+- `d2a-arch-4-state-evolution`: 对应六要素中的“状态演化 / 状态机”
+- `d2a-arch-5-module-view`: 对应六要素中的“协作”
+- `d2a-arch-6-tradeoff-view`: 对应六要素中的“约束 / 取舍”
+- `d2a-mini-1-scope`: mini implementation 范围收敛入口
+- `d2a-mini-2-design`: mini implementation 设计入口
+- `d2a-mini-3-build`: mini implementation 实现入口
+- `d2a-mini-4-test`: mini integration testing 入口
 - `d2a-step`: 状态驱动推进入口，自动选择下一子 skill，并支持会话中断后的断点续接
 - `d2a-report-build`: report 汇总与展示入口
-- `d2a-status`: 当前 `.d2a` 工作流状态查看入口
+- `d2a-status`: 当前 d2a 工作流状态查看入口
 - `d2a-challenge-architecture`: 分析完成后的架构质疑阶段入口，负责记录挑战而不默认改写架构结论
 
 这些 skills 只是第一版骨架，后续会继续扩展为完整套装。
@@ -268,12 +273,12 @@ d2a skill-state <skill-name> ...
 
 当前其中这两个 skill 已作为第一批双阶段 skill 样板，明确区分：
 
-- [d2a-project-scope](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-project-scope/SKILL.md)
-- [d2a-runtime-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-runtime-view/SKILL.md)
-- [d2a-core-objects](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-core-objects/SKILL.md)
-- [d2a-state-evolution](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-state-evolution/SKILL.md)
-- [d2a-module-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-module-view/SKILL.md)
-- [d2a-tradeoff-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-tradeoff-view/SKILL.md)
+- [d2a-arch-1-project-scope](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-1-project-scope/SKILL.md)
+- [d2a-arch-2-runtime-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-2-runtime-view/SKILL.md)
+- [d2a-arch-3-core-objects](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-3-core-objects/SKILL.md)
+- [d2a-arch-4-state-evolution](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-4-state-evolution/SKILL.md)
+- [d2a-arch-5-module-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-5-module-view/SKILL.md)
+- [d2a-arch-6-tradeoff-view](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-arch-6-tradeoff-view/SKILL.md)
 
 - analysis-generation
 - confirmation-questions
@@ -282,10 +287,10 @@ d2a skill-state <skill-name> ...
 
 mini 主链当前也开始按同样方式推进，已升级的样板包括：
 
-- [d2a-mini-scope](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-mini-scope/SKILL.md)
-- [d2a-mini-design](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-mini-design/SKILL.md)
-- [d2a-mini-build](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-mini-build/SKILL.md)
-- [d2a-mini-test](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills/d2a-mini-test/SKILL.md)
+- [d2a-mini-1-scope](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-mini-1-scope/SKILL.md)
+- [d2a-mini-2-design](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-mini-2-design/SKILL.md)
+- [d2a-mini-3-build](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-mini-3-build/SKILL.md)
+- [d2a-mini-4-test](/Users/feilong/Desktop/dev/zigslice/dot_20_arch_draft/assets/skills_zh_cn/d2a-mini-4-test/SKILL.md)
 
 ## Development Direction
 
@@ -302,7 +307,7 @@ mini 主链当前也开始按同样方式推进，已升级的样板包括：
 - `help`、`init`、`analyze`、`derive-mini`、`test-mini`、`report` 与 `serve` 命令
 - `status` 命令
 - 内置 skills 资源
-- repository-root `.d2a` 目录初始化逻辑
+- workspace-root 独立工作区初始化逻辑（含 `repos/` 浅克隆）
 - analysis task 文件生成逻辑
 - mini derivation task 文件生成逻辑
 - test planning task 文件生成逻辑

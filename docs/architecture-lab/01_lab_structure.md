@@ -2,7 +2,7 @@
 
 ## Target Layout
 
-`d2a init <repo-dir>` should create this structure:
+`d2a init <target-repo-git-url>` should create this structure:
 
 ```text
 <repo-dir>/

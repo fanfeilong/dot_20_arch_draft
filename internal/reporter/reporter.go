@@ -56,7 +56,8 @@ func BuildReport(repoRoot string) (string, error) {
 	}
 
 	d2aDir := filepath.Join(repoRoot, ".d2a")
-	dataDir := filepath.Join(d2aDir, "report", "data")
+	reportDir := filepath.Join(repoRoot, "report")
+	dataDir := filepath.Join(reportDir, "data")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		return "", fmt.Errorf("create report data dir: %w", err)
 	}
@@ -70,7 +71,7 @@ func BuildReport(repoRoot string) (string, error) {
 		ImplementationDocs: implementationDocs(),
 		TestDocs:           manifest.Outputs,
 		SourceDocs:         []string{"src/README.md", "src/ARCHITECTURE.md"},
-		AvailableArtifacts: []string{".d2a/LAB.md", ".d2a/target.json", ".d2a/test-mini.json", ".d2a/challenge.json", ".d2a/challenge_log.jsonl"},
+		AvailableArtifacts: []string{"LAB.md", ".d2a/target.json", ".d2a/test-mini.json", ".d2a/challenge.json", ".d2a/challenge_log.jsonl"},
 	}
 
 	if err := writeJSON(filepath.Join(dataDir, "summary.json"), s); err != nil {
@@ -86,15 +87,15 @@ func BuildReport(repoRoot string) (string, error) {
 		return "", err
 	}
 
-	indexPath := filepath.Join(d2aDir, "report", "index.md")
+	indexPath := filepath.Join(reportDir, "index.md")
 	if err := os.WriteFile(indexPath, []byte(reportIndex(s, challenge)), 0o644); err != nil {
 		return "", fmt.Errorf("write report index %s: %w", indexPath, err)
 	}
-	htmlPath := filepath.Join(d2aDir, "report", "index.html")
+	htmlPath := filepath.Join(reportDir, "index.html")
 	if err := os.WriteFile(htmlPath, []byte(reportHTML(s, challenge)), 0o644); err != nil {
 		return "", fmt.Errorf("write report html %s: %w", htmlPath, err)
 	}
-	if err := ensureVueSkeleton(filepath.Join(d2aDir, "report")); err != nil {
+	if err := ensureVueSkeleton(reportDir); err != nil {
 		return "", err
 	}
 
@@ -102,7 +103,7 @@ func BuildReport(repoRoot string) (string, error) {
 }
 
 func loadTargetMetadata(repoRoot string) (targetMetadata, error) {
-	d2aFile := filepath.Join(repoRoot, ".d2a", "LAB.md")
+	d2aFile := filepath.Join(repoRoot, "LAB.md")
 	if _, err := os.Stat(d2aFile); err != nil {
 		if os.IsNotExist(err) {
 			return targetMetadata{}, fmt.Errorf("d2a not initialized in repository: %s", repoRoot)

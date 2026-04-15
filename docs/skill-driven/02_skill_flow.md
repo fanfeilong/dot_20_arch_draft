@@ -2,7 +2,7 @@
 
 ## End-To-End Flow In Codex
 
-After `d2a init <repo-dir>`, the intended flow is:
+After `d2a init <target-repo-git-url>`, the intended flow is:
 
 1. User enters Codex in the target repository root.
 2. User invokes `$d2a-step`.
@@ -20,23 +20,22 @@ After `d2a init <repo-dir>`, the intended flow is:
 
 ### Analysis (sub-skills routed by `d2a-step`)
 
-- `$d2a-architecture-walkthrough`
-- `$d2a-project-scope`
-- `$d2a-runtime-view`
-- `$d2a-core-objects`
-- `$d2a-state-evolution`
-- `$d2a-module-view`
-- `$d2a-tradeoff-view`
+- `$d2a-arch-1-project-scope`
+- `$d2a-arch-2-runtime-view`
+- `$d2a-arch-3-core-objects`
+- `$d2a-arch-4-state-evolution`
+- `$d2a-arch-5-module-view`
+- `$d2a-arch-6-tradeoff-view`
 
 ### Implementation (sub-skills routed by `d2a-step`)
 
-- `$d2a-mini-scope`
-- `$d2a-mini-design`
-- `$d2a-mini-build`
+- `$d2a-mini-1-scope`
+- `$d2a-mini-2-design`
+- `$d2a-mini-3-build`
 
 ### Testing (sub-skills routed by `d2a-step`)
 
-- `$d2a-mini-test`
+- `$d2a-mini-4-test`
 
 ### Reporting (sub-skills routed by `d2a-step`)
 
@@ -48,6 +47,13 @@ After `d2a init <repo-dir>`, the intended flow is:
 - Implementation skills own `docs/implementation/*` and later `src/*`
 - Testing skills own `tests/*`
 - Reporting skills own `report/*`
+- Confirmation-question interaction logs are owned by `.d2a/qa/*`
+
+## Artifact Separation Rule
+
+- `docs/architecture/*`: final architecture conclusions only.
+- `.d2a/qa/*`: confirmation questions, learner answers, scoring, and turn-by-turn teaching traces.
+- `d2a-step` routes by reading state/qa cursors, not by parsing architecture docs.
 
 ## Success Condition
 

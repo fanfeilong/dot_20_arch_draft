@@ -15,11 +15,10 @@ After that, the user enters Codex and uses skills as the main control surface.
 Typical examples:
 
 - `$d2a-step`
-- `$d2a-architecture-walkthrough`
-- `$d2a-mini-scope`
-- `$d2a-mini-design`
-- `$d2a-mini-build`
-- `$d2a-mini-test`
+- `$d2a-mini-1-scope`
+- `$d2a-mini-2-design`
+- `$d2a-mini-3-build`
+- `$d2a-mini-4-test`
 - `$d2a-report-build`
 
 Recommended default entry:
