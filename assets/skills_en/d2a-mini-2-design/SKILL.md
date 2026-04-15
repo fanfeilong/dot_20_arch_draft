@@ -43,7 +43,7 @@ Rules:
 
 1. The body must use `- ` bullet lines, minimum 2 lines and maximum 4 lines.
 2. Each point must occupy exactly one line; do not write long paragraphs.
-3. Keep each line under about 140 characters; split lines when longer.
+3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
 If the active repository is unknown, stop and ask the user which repository should be used.
@@ -71,14 +71,14 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 
 1. After context is confirmed, call:
 
-   `d2a skill-state d2a-mini-2-design --status started --stage mini-design-in-progress --phase analysis-generation --next-step "Design the smallest useful runnable mini architecture." --next-skill "d2a-mini-3-build" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Started mini-design work."`
+   `d2a skill-state d2a-mini-2-design --status started --stage mini-design-in-progress --phase analysis-generation --next-step "Design the smallest useful runnable mini architecture." --next-skill "d2a-mini-3-build" --next-file "docs/implementation/01_mini_design.md" --summary "Started mini-design work."`
 
 2. Execute the three gates first and output gate conclusions (provider match, timebox, intent anchors).
 3. If implementation planning files have not yet been prepared, call `d2a derive-mini`.
 4. Read:
-   - `.d2a/docs/implementation/00_mini_scope.md`
+   - `docs/implementation/00_mini_scope.md`
    - the architecture files it references
-5. Write the result into `.d2a/docs/implementation/01_mini_design.md`.
+5. Write the result into `docs/implementation/01_mini_design.md`.
 6. Keep `.d2a/src/ARCHITECTURE.md` aligned with the chosen design if the summary there is stale.
 7. Answer these atomic questions:
    - What are the main modules of the mini version?
@@ -93,7 +93,7 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 10. Keep the design tied to the core architecture idea, not to broad feature coverage.
 11. When the analysis draft is stable, call:
 
-   `d2a skill-state d2a-mini-2-design --status progress --stage mini-design-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "Ask the first mini-design confirmation question." --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Mini-design analysis complete; moving into confirmation questions."`
+   `d2a skill-state d2a-mini-2-design --status progress --stage mini-design-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "Ask the first mini-design confirmation question." --next-skill "d2a-mini-2-design" --next-file "docs/implementation/01_mini_design.md" --summary "Mini-design analysis complete; moving into confirmation questions."`
 
 ## Phase 2: Confirmation Questions
 

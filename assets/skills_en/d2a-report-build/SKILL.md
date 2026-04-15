@@ -39,7 +39,7 @@ Rules:
 
 1. The body must use `- ` bullet lines, minimum 2 lines and maximum 4 lines.
 2. Each point must occupy exactly one line; do not write long paragraphs.
-3. Keep each line under about 140 characters; split lines when longer.
+3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
 If the active repository is unknown, stop and ask the user which repository should be used.
@@ -58,7 +58,7 @@ When the current turn asks the user a question and waits for user input, the las
 4. Treat this skill as the user-facing entry for the reporting stage inside Codex.
 5. If report data is missing or stale, call `d2a report` before refining the report.
 6. Read `.d2a/report/index.md` and `.d2a/report/data/*.json`.
-7. Use `.d2a/docs/`, `.d2a/src/`, and `.d2a/tests/` as the content sources behind the report.
+7. Use `docs/`, `.d2a/src/`, and `.d2a/tests/` as the content sources behind the report.
 8. Keep the report focused on architecture, mini implementation, tests, and the teaching narrative.
 9. Treat `.d2a/report/data/*.json` as the stable input contract for the future Vue app.
 10. You must generate two-page brief artifacts: `report/brief.md` and `report/brief.html` (A4 print style).

@@ -43,7 +43,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 正文必须使用 `- ` 列表输出，最少 2 条、最多 4 条。
 2. 每条要点独占一行，不得写成长段落。
-3. 单行不超过 100 个中文字符；超长必须拆行。
+3. 单行不超过 80 个中文字符；超长必须拆行。
 4. 正文禁止使用 Markdown 强调符号（如 `` `...` ``、`**...**`）。
 
 如果无法确定当前仓库，立即停止并询问用户要使用哪个仓库。
@@ -78,7 +78,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 3. 将该技能视为 Codex 中测试阶段的用户入口。
 4. 若测试任务文件尚未准备好，在写测试前调用 `d2a test-mini`。
 5. 读取：
-   - `.d2a/docs/implementation/03_test_plan.md`
+   - `docs/2.mini实现/03_测试计划.md`
    - `.d2a/tests/README.md`
    - `.d2a/tests/01_integration_tasks.md`
    - `.d2a/src/ARCHITECTURE.md`
@@ -118,7 +118,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 9. 第 4 题评估后：
    - 输出简短回顾
    - 输出 `理解度打分`
-   - `理解度打分` 控制在 100 字以内
+   - `理解度打分` 控制在 80 字以内
 10. 确认题阶段结束时，调用：
 
     `d2a skill-state d2a-mini-4-test --status completed --stage testing-complete --phase confirmation-questions --question-index 4 --question-total 4 --next-step "进入 d2a-report-build。" --next-skill "d2a-report-build" --next-file ".d2a/report/index.md" --summary "Completed mini-test confirmation questions."`

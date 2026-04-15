@@ -43,7 +43,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 正文必须使用 `- ` 列表输出，最少 2 条、最多 4 条。
 2. 每条要点独占一行，不得写成长段落。
-3. 单行不超过 100 个中文字符；超长必须拆行。
+3. 单行不超过 80 个中文字符；超长必须拆行。
 4. 正文禁止使用 Markdown 强调符号（如 `` `...` ``、`**...**`）。
 
 如果无法确定当前仓库，立即停止并询问用户要使用哪个仓库。
@@ -58,7 +58,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 确认上下文后，先调用：
 
-   `d2a skill-state d2a-arch-1-project-scope --status started --stage architecture-in-progress --phase atomic-question-alignment --question-index 0 --question-total 1 --next-step "展示原子分析问题，并进行一次性补充询问（是/否）。" --next-skill "d2a-arch-1-project-scope" --next-file ".d2a/docs/architecture/01_boundary.md" --summary "已启动 project-scope 原子问题对齐。"`
+   `d2a skill-state d2a-arch-1-project-scope --status started --stage architecture-in-progress --phase atomic-question-alignment --question-index 0 --question-total 1 --next-step "展示原子分析问题，并进行一次性补充询问（是/否）。" --next-skill "d2a-arch-1-project-scope" --next-file "docs/1.架构拆解/01_边界.md" --summary "已启动 project-scope 原子问题对齐。"`
 
 2. 在开始分析前，必须先向用户输出：
 
@@ -67,18 +67,18 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 3. 本阶段只允许一次补充交互：
    - 用户答 `是`：收集补充问题并与原子问题合并，然后回显“已合并问题清单”。
    - 用户答 `否`：直接使用原子问题进入分析。
-4. 不允许在用户确认前写入 `.d2a/docs/architecture/01_boundary.md`。
+4. 不允许在用户确认前写入 `docs/1.架构拆解/01_边界.md`。
 5. 完成对齐后，调用：
 
-   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase analysis-generation --question-index 1 --question-total 1 --next-step "使用合并后的原子问题进入分析生成。" --next-skill "d2a-arch-1-project-scope" --next-file ".d2a/docs/architecture/01_boundary.md" --summary "project-scope 原子问题对齐完成。"`
+   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase analysis-generation --question-index 1 --question-total 1 --next-step "使用合并后的原子问题进入分析生成。" --next-skill "d2a-arch-1-project-scope" --next-file "docs/1.架构拆解/01_边界.md" --summary "project-scope 原子问题对齐完成。"`
 
 ## 阶段 2：分析生成
 
 1. 确认上下文后，调用：
 
-   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase analysis-generation --next-step "定义系统边界与入口点。" --next-skill "d2a-arch-2-runtime-view" --next-file ".d2a/docs/architecture/01_boundary.md" --summary "Started project-scope analysis."`
+   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase analysis-generation --next-step "定义系统边界与入口点。" --next-skill "d2a-arch-2-runtime-view" --next-file "docs/1.架构拆解/01_边界.md" --summary "Started project-scope analysis."`
 
-2. 基于真实仓库进行分析，并将结果写入 `.d2a/docs/architecture/01_boundary.md`.
+2. 基于真实仓库进行分析，并将结果写入 `docs/1.架构拆解/01_边界.md`.
 3. 回答以下合并后的原子问题（基础问题 + 用户可选补充）：
    - 这是什么类型的系统？
    - 一句话定义是什么？
@@ -93,7 +93,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 5. 保持结果简短、结构化，并避免项目历史叙述。
 6. 当分析草稿稳定后，调用：
 
-   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "开始第 1 题 project-scope 确认题。" --next-skill "d2a-arch-1-project-scope" --next-file ".d2a/docs/architecture/01_boundary.md" --summary "Project-scope analysis complete; moving into confirmation questions."`
+   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "开始第 1 题 project-scope 确认题。" --next-skill "d2a-arch-1-project-scope" --next-file "docs/1.架构拆解/01_边界.md" --summary "Project-scope analysis complete; moving into confirmation questions."`
 
 ## 阶段 3：确认题
 
@@ -109,7 +109,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
    - `[next]` 行应指向本组问题结束后的 next skill/file。
 5. 在提问第 `N` 题前，调用：
 
-   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "继续 project-scope 确认题。" --next-skill "d2a-arch-2-runtime-view" --next-file ".d2a/docs/architecture/02_driver.md" --summary "Project-scope confirmation question <N> is active."`
+   `d2a skill-state d2a-arch-1-project-scope --status progress --stage architecture-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "继续 project-scope 确认题。" --next-skill "d2a-arch-2-runtime-view" --next-file "docs/1.架构拆解/02_驱动.md" --summary "Project-scope confirmation question <N> is active."`
 
 6. 给出一道选择题。
 7. 等待学习者作答。
@@ -120,10 +120,10 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 9. 第 4 题评估后：
    - 输出简短回顾
    - 输出 `理解度打分`
-   - `理解度打分` 控制在 100 字以内
+   - `理解度打分` 控制在 80 字以内
 10. 确认题阶段结束时，调用：
 
-    `d2a skill-state d2a-arch-1-project-scope --status completed --stage architecture-in-progress --phase confirmation-questions --question-index 4 --question-total 4 --next-step "进入 d2a-arch-2-runtime-view。" --next-skill "d2a-arch-2-runtime-view" --next-file ".d2a/docs/architecture/02_driver.md" --summary "Completed project-scope confirmation questions."`
+    `d2a skill-state d2a-arch-1-project-scope --status completed --stage architecture-in-progress --phase confirmation-questions --question-index 4 --question-total 4 --next-step "进入 d2a-arch-2-runtime-view。" --next-skill "d2a-arch-2-runtime-view" --next-file "docs/1.架构拆解/02_驱动.md" --summary "Completed project-scope confirmation questions."`
 
 11. 确认题的题干、用户答案、判定与解释必须写入 `.d2a/qa/<skill>.jsonl`，不得写入 `docs/architecture/*.md`。
 

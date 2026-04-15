@@ -43,7 +43,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 正文必须使用 `- ` 列表输出，最少 2 条、最多 4 条。
 2. 每条要点独占一行，不得写成长段落。
-3. 单行不超过 100 个中文字符；超长必须拆行。
+3. 单行不超过 80 个中文字符；超长必须拆行。
 4. 正文禁止使用 Markdown 强调符号（如 `` `...` ``、`**...**`）。
 
 如果无法确定当前仓库，立即停止并询问用户要使用哪个仓库。
@@ -71,14 +71,14 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 确认上下文后，调用：
 
-   `d2a skill-state d2a-mini-2-design --status started --stage mini-design-in-progress --phase analysis-generation --next-step "设计最小可用的可运行 mini 架构。" --next-skill "d2a-mini-3-build" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Started mini-design work."`
+   `d2a skill-state d2a-mini-2-design --status started --stage mini-design-in-progress --phase analysis-generation --next-step "设计最小可用的可运行 mini 架构。" --next-skill "d2a-mini-3-build" --next-file "docs/2.mini实现/01_最小设计.md" --summary "Started mini-design work."`
 
 2. 先执行三道 Gate，输出本轮 gate 结论（provider 命中情况、timebox 预算、intent 锚点）。
 3. 若实现规划文件尚未准备好，调用 `d2a derive-mini`。
 4. 读取：
-   - `.d2a/docs/implementation/00_mini_scope.md`
+   - `docs/2.mini实现/00_最小范围.md`
    - 其引用的架构文档
-5. 将结果写入 `.d2a/docs/implementation/01_mini_design.md`.
+5. 将结果写入 `docs/2.mini实现/01_最小设计.md`.
 6. 若 `.d2a/src/ARCHITECTURE.md` 摘要已过期，请与选定设计保持一致并更新。
 7. 回答以下原子问题：
    - What are the 主要模块 of the mini version?
@@ -93,7 +93,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 10. 设计需绑定核心架构意图，而不是追求宽泛功能覆盖。
 11. 当分析草稿稳定后，调用：
 
-   `d2a skill-state d2a-mini-2-design --status progress --stage mini-design-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "开始第 1 题 mini-design 确认题。" --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Mini-design analysis complete; moving into confirmation questions."`
+   `d2a skill-state d2a-mini-2-design --status progress --stage mini-design-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "开始第 1 题 mini-design 确认题。" --next-skill "d2a-mini-2-design" --next-file "docs/2.mini实现/01_最小设计.md" --summary "Mini-design analysis complete; moving into confirmation questions."`
 
 ## 阶段 2：确认题
 
@@ -120,7 +120,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 9. 第 4 题评估后：
    - 输出简短回顾
    - 输出 `理解度打分`
-   - `理解度打分` 控制在 100 字以内
+   - `理解度打分` 控制在 80 字以内
 10. 确认题阶段结束时，调用：
 
     `d2a skill-state d2a-mini-2-design --status completed --stage mini-design-complete --phase confirmation-questions --question-index 4 --question-total 4 --next-step "进入 d2a-mini-3-build。" --next-skill "d2a-mini-3-build" --next-file ".d2a/src/ARCHITECTURE.md" --summary "Completed mini-design confirmation questions."`

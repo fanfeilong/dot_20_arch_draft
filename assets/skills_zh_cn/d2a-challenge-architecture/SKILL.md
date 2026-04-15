@@ -43,7 +43,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 正文必须使用 `- ` 列表输出，最少 2 条、最多 4 条。
 2. 每条要点独占一行，不得写成长段落。
-3. 单行不超过 100 个中文字符；超长必须拆行。
+3. 单行不超过 80 个中文字符；超长必须拆行。
 4. 正文禁止使用 Markdown 强调符号（如 `` `...` ``、`**...**`）。
 
 如果无法确定当前仓库，立即停止并询问用户要使用哪个仓库。
@@ -58,20 +58,20 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 开始前读取以下文件：
 
-- `.d2a/docs/architecture/00_overview.md`
-- `.d2a/docs/architecture/01_boundary.md`
-- `.d2a/docs/architecture/02_driver.md`
-- `.d2a/docs/architecture/03_core_objects.md`
-- `.d2a/docs/architecture/04_state_evolution.md`
-- `.d2a/docs/architecture/05_cooperation.md`
-- `.d2a/docs/architecture/06_constraints.md`
-- `.d2a/docs/architecture/99_code_map.md`
+- `docs/1.架构拆解/00_总览.md`
+- `docs/1.架构拆解/01_边界.md`
+- `docs/1.架构拆解/02_驱动.md`
+- `docs/1.架构拆解/03_核心对象.md`
+- `docs/1.架构拆解/04_状态演化.md`
+- `docs/1.架构拆解/05_协作.md`
+- `docs/1.架构拆解/06_约束.md`
+- `docs/1.架构拆解/99_代码地图.md`
 
 ## 阶段 1：挑战准备
 
 1. 确认上下文后，调用：
 
-   `d2a skill-state d2a-challenge-architecture --status started --stage architecture-challenge-prepared --phase challenge-preparation --next-step "Prepare the six architecture decisions for challenge dialogue." --next-skill "d2a-challenge-architecture" --next-file ".d2a/docs/architecture/00_overview.md" --summary "Started architecture challenge preparation."`
+   `d2a skill-state d2a-challenge-architecture --status started --stage architecture-challenge-prepared --phase challenge-preparation --next-step "Prepare the six architecture decisions for challenge dialogue." --next-skill "d2a-challenge-architecture" --next-file "docs/1.架构拆解/00_总览.md" --summary "Started architecture challenge preparation."`
 
 2. Extract these `6` architecture decisions to challenge:
    - system boundary
@@ -84,7 +84,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 4. If needed, create a temporary challenge checklist in the conversation, but keep the architecture docs unchanged.
 5. When the challenge set is ready, call:
 
-   `d2a skill-state d2a-challenge-architecture --status progress --stage architecture-challenge-in-progress --phase challenge-dialogue --question-index 0 --question-total 6 --next-step "Start the first architecture challenge round." --next-skill "d2a-challenge-architecture" --next-file ".d2a/docs/architecture/00_overview.md" --summary "Architecture challenge set prepared; moving into challenge dialogue."`
+   `d2a skill-state d2a-challenge-architecture --status progress --stage architecture-challenge-in-progress --phase challenge-dialogue --question-index 0 --question-total 6 --next-step "Start the first architecture challenge round." --next-skill "d2a-challenge-architecture" --next-file "docs/1.架构拆解/00_总览.md" --summary "Architecture challenge set prepared; moving into challenge dialogue."`
 
 ## 阶段 2：挑战对话
 
@@ -101,7 +101,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
    - `[next]` 行应指向挑战结束后的续接目标。
 4. 在第 `N` 轮挑战前，调用：
 
-   `d2a skill-state d2a-challenge-architecture --status progress --stage architecture-challenge-in-progress --phase challenge-dialogue --question-index <N> --question-total 6 --next-step "Continue architecture challenge dialogue." --next-skill "d2a-mini-1-scope" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Architecture challenge round <N> is active."`
+   `d2a skill-state d2a-challenge-architecture --status progress --stage architecture-challenge-in-progress --phase challenge-dialogue --question-index <N> --question-total 6 --next-step "Continue architecture challenge dialogue." --next-skill "d2a-mini-1-scope" --next-file "docs/2.mini实现/00_最小范围.md" --summary "Architecture challenge round <N> is active."`
 
 5. 每轮中：
    - 给出一个架构决策
@@ -126,7 +126,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 2. 在该收尾阶段保持架构文档不变。
 3. 挑战阶段结束时，调用：
 
-   `d2a skill-state d2a-challenge-architecture --status completed --stage architecture-challenge-complete --phase challenge-dialogue --question-index 6 --question-total 6 --next-step "Proceed to d2a-mini-1-scope unless a 复审 is required." --next-skill "d2a-mini-1-scope" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Completed architecture challenge phase."`
+   `d2a skill-state d2a-challenge-architecture --status completed --stage architecture-challenge-complete --phase challenge-dialogue --question-index 6 --question-total 6 --next-step "Proceed to d2a-mini-1-scope unless a 复审 is required." --next-skill "d2a-mini-1-scope" --next-file "docs/2.mini实现/00_最小范围.md" --summary "Completed architecture challenge phase."`
 
 ## 回合结束续接规则
 

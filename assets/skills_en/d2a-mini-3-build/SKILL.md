@@ -43,7 +43,7 @@ Rules:
 
 1. The body must use `- ` bullet lines, minimum 2 lines and maximum 4 lines.
 2. Each point must occupy exactly one line; do not write long paragraphs.
-3. Keep each line under about 140 characters; split lines when longer.
+3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
 If the active repository is unknown, stop and ask the user which repository should be used.
@@ -77,9 +77,9 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 2. Execute the three gates first and output gate conclusions (provider match, timebox, intent anchors).
 3. If implementation planning files have not yet been prepared, call `d2a derive-mini`.
 4. Read:
-   - `.d2a/docs/implementation/00_mini_scope.md`
-   - `.d2a/docs/implementation/01_mini_design.md`
-   - `.d2a/docs/implementation/02_build_plan.md`
+   - `docs/implementation/00_mini_scope.md`
+   - `docs/implementation/01_mini_design.md`
+   - `docs/implementation/02_build_plan.md`
    - `.d2a/src/ARCHITECTURE.md`
 5. Implement only the first runnable slice described in the build plan.
 6. Prefer a small but executable result over broad coverage.

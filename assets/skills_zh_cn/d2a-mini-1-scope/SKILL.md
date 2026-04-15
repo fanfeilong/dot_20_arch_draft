@@ -43,7 +43,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 正文必须使用 `- ` 列表输出，最少 2 条、最多 4 条。
 2. 每条要点独占一行，不得写成长段落。
-3. 单行不超过 100 个中文字符；超长必须拆行。
+3. 单行不超过 80 个中文字符；超长必须拆行。
 4. 正文禁止使用 Markdown 强调符号（如 `` `...` ``、`**...**`）。
 
 如果无法确定当前仓库，立即停止并询问用户要使用哪个仓库。
@@ -76,7 +76,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 1. 确认上下文后，调用：
 
-   `d2a skill-state d2a-mini-1-scope --status started --stage mini-derivation-prepared --phase analysis-generation --next-step "选择要保留的单一架构意图。" --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Started mini-scope derivation."`
+   `d2a skill-state d2a-mini-1-scope --status started --stage mini-derivation-prepared --phase analysis-generation --next-step "选择要保留的单一架构意图。" --next-skill "d2a-mini-2-design" --next-file "docs/2.mini实现/00_最小范围.md" --summary "Started mini-scope derivation."`
 
 2. 将该技能视为 Codex 中 mini 实现阶段的用户入口。
 3. 先执行一次 Human-in-the-loop 技术栈确认并回显结论：
@@ -86,13 +86,13 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 4. 再执行三道 Gate，输出本轮 gate 结论（provider 命中情况、timebox 预算、intent 锚点）。
 5. 若实现规划文件尚未准备好，在产出内容前调用 `d2a derive-mini`。
 6. 读取：
-   - `.d2a/docs/architecture/00_overview.md`
-   - `.d2a/docs/architecture/02_driver.md`
-   - `.d2a/docs/architecture/03_core_objects.md`
-   - `.d2a/docs/architecture/04_state_evolution.md`
-   - `.d2a/docs/architecture/05_cooperation.md`
-   - `.d2a/docs/architecture/06_constraints.md`
-7. 将结果写入 `.d2a/docs/implementation/00_mini_scope.md`.
+   - `docs/1.架构拆解/00_总览.md`
+   - `docs/1.架构拆解/02_驱动.md`
+   - `docs/1.架构拆解/03_核心对象.md`
+   - `docs/1.架构拆解/04_状态演化.md`
+   - `docs/1.架构拆解/05_协作.md`
+   - `docs/1.架构拆解/06_约束.md`
+7. 将结果写入 `docs/2.mini实现/00_最小范围.md`.
 8. 回答以下原子问题：
    - 必须保留的单一架构意图是什么？
    - Which 可运行的 20% 切片 is enough to demonstrate it?
@@ -105,7 +105,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 10. 范围需足够小，以支持首个可运行切片。
 11. 当分析草稿稳定后，调用：
 
-   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index 0 --question-total 4 --next-step "开始第 1 题 mini-scope 确认题。" --next-skill "d2a-mini-1-scope" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Mini-scope analysis complete; moving into confirmation questions."`
+   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index 0 --question-total 4 --next-step "开始第 1 题 mini-scope 确认题。" --next-skill "d2a-mini-1-scope" --next-file "docs/2.mini实现/00_最小范围.md" --summary "Mini-scope analysis complete; moving into confirmation questions."`
 
 ## 阶段 2：确认题
 
@@ -121,7 +121,7 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
    - `[next]` 行应指向本组问题结束后的 next skill/file。
 5. 在提问第 `N` 题前，调用：
 
-   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index <N> --question-total 4 --next-step "继续 mini-scope 确认题。" --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Mini-scope confirmation question <N> is active."`
+   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index <N> --question-total 4 --next-step "继续 mini-scope 确认题。" --next-skill "d2a-mini-2-design" --next-file "docs/2.mini实现/01_最小设计.md" --summary "Mini-scope confirmation question <N> is active."`
 
 6. 给出一道选择题。
 7. 等待学习者作答。
@@ -132,10 +132,10 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 9. 第 4 题评估后：
    - 输出简短回顾
    - 输出 `理解度打分`
-   - `理解度打分` 控制在 100 字以内
+   - `理解度打分` 控制在 80 字以内
 10. 确认题阶段结束时，调用：
 
-    `d2a skill-state d2a-mini-1-scope --status completed --stage mini-derivation-prepared --phase confirmation-questions --question-index 4 --question-total 4 --next-step "进入 d2a-mini-2-design。" --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Completed mini-scope confirmation questions."`
+    `d2a skill-state d2a-mini-1-scope --status completed --stage mini-derivation-prepared --phase confirmation-questions --question-index 4 --question-total 4 --next-step "进入 d2a-mini-2-design。" --next-skill "d2a-mini-2-design" --next-file "docs/2.mini实现/01_最小设计.md" --summary "Completed mini-scope confirmation questions."`
 
 11. 确认题的题干、用户答案、判定与解释必须写入 `.d2a/qa/<skill>.jsonl`，不得写入 `docs/implementation/*.md` 或 `src/*`。
 

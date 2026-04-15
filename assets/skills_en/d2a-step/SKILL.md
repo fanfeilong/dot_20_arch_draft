@@ -39,7 +39,7 @@ Rules:
 4. Body must be at least two lines:
    - line 1: current action (what is happening now)
    - line 2: purpose/evidence (why this action is selected)
-5. Auto-wrap body text; keep each line under about 140 characters.
+5. Auto-wrap body text; keep each line under 80 characters.
 6. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`) to prevent code-block-like rendering in Cursor.
 7. If `next_file` is unknown, print `unknown` and keep the same two-line shape.
 
@@ -48,7 +48,7 @@ Rules:
 
 1. The body must use `- ` bullet lines, minimum 2 lines and maximum 4 lines.
 2. Each point must occupy exactly one line; do not write long paragraphs.
-3. Keep each line under about 140 characters; split lines when longer.
+3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
 If the active repository is unknown, stop and ask the user which repository should be used.
@@ -66,10 +66,10 @@ When the current turn asks the user a question and waits for user input, the las
 ```text
 ==================================================
 [Analysis 1/6 | Boundary] n8n_d2a
-next: d2a-arch-1-project-scope -> .d2a/docs/architecture/01_boundary.md
+next: d2a-arch-1-project-scope -> docs/architecture/01_boundary.md
 ==================================================
 
-- Next action: d2a-arch-1-project-scope (file: .d2a/docs/architecture/01_boundary.md).
+- Next action: d2a-arch-1-project-scope (file: docs/architecture/01_boundary.md).
 - Please confirm whether to continue this action. (yes/no)
 [human_in_loop]
 

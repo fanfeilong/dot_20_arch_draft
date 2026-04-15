@@ -209,3 +209,62 @@ func TestRecordSkillRejectsStageRegression(t *testing.T) {
 		t.Fatalf("expected stage regression error")
 	}
 }
+
+func TestRecordSkillNormalizesNextFileToZhDocPath(t *testing.T) {
+	repo := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(repo, ".d2a"), 0o755); err != nil {
+		t.Fatalf("MkdirAll returned error: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(repo, "docs", "1.架构拆解"), 0o755); err != nil {
+		t.Fatalf("MkdirAll returned error: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile returned error: %v", err)
+	}
+	if _, err := Initialize(repo); err != nil {
+		t.Fatalf("Initialize returned error: %v", err)
+	}
+
+	s, err := RecordSkill(repo, SkillUpdate{
+		Skill:    "d2a-arch-2-runtime-view",
+		Status:   "progress",
+		Stage:    StageArchitectureInProgress,
+		Phase:    "analysis-generation",
+		NextFile: ".d2a/docs/architecture/02_driver.md",
+		Summary:  "Normalize next file path.",
+	})
+	if err != nil {
+		t.Fatalf("RecordSkill returned error: %v", err)
+	}
+	if s.NextFile != "docs/1.架构拆解/02_驱动.md" {
+		t.Fatalf("unexpected normalized next file: %q", s.NextFile)
+	}
+}
+
+func TestRecordSkillNormalizesNextFileWithoutZhLayout(t *testing.T) {
+	repo := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(repo, ".d2a"), 0o755); err != nil {
+		t.Fatalf("MkdirAll returned error: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "LAB.md"), []byte("# d2a\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile returned error: %v", err)
+	}
+	if _, err := Initialize(repo); err != nil {
+		t.Fatalf("Initialize returned error: %v", err)
+	}
+
+	s, err := RecordSkill(repo, SkillUpdate{
+		Skill:    "d2a-arch-2-runtime-view",
+		Status:   "progress",
+		Stage:    StageArchitectureInProgress,
+		Phase:    "analysis-generation",
+		NextFile: ".d2a/docs/architecture/02_driver.md",
+		Summary:  "Normalize next file path.",
+	})
+	if err != nil {
+		t.Fatalf("RecordSkill returned error: %v", err)
+	}
+	if s.NextFile != "docs/architecture/02_driver.md" {
+		t.Fatalf("unexpected normalized next file: %q", s.NextFile)
+	}
+}

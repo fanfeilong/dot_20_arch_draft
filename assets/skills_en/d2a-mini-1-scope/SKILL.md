@@ -43,7 +43,7 @@ Rules:
 
 1. The body must use `- ` bullet lines, minimum 2 lines and maximum 4 lines.
 2. Each point must occupy exactly one line; do not write long paragraphs.
-3. Keep each line under about 140 characters; split lines when longer.
+3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
 If the active repository is unknown, stop and ask the user which repository should be used.
@@ -76,7 +76,7 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 
 1. After context is confirmed, call:
 
-   `d2a skill-state d2a-mini-1-scope --status started --stage mini-derivation-prepared --phase analysis-generation --next-step "Choose the single architecture idea to preserve." --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Started mini-scope derivation."`
+   `d2a skill-state d2a-mini-1-scope --status started --stage mini-derivation-prepared --phase analysis-generation --next-step "Choose the single architecture idea to preserve." --next-skill "d2a-mini-2-design" --next-file "docs/implementation/00_mini_scope.md" --summary "Started mini-scope derivation."`
 
 2. Treat this skill as the user-facing entry for the mini-implementation stage inside Codex.
 3. Run one human-in-the-loop stack confirmation first and echo the decision:
@@ -86,13 +86,13 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 4. Execute the three gates and output gate conclusions (provider match, timebox, intent anchors).
 5. If implementation planning files have not yet been prepared, call `d2a derive-mini` before producing content.
 6. Read:
-   - `.d2a/docs/architecture/00_overview.md`
-   - `.d2a/docs/architecture/02_driver.md`
-   - `.d2a/docs/architecture/03_core_objects.md`
-   - `.d2a/docs/architecture/04_state_evolution.md`
-   - `.d2a/docs/architecture/05_cooperation.md`
-   - `.d2a/docs/architecture/06_constraints.md`
-7. Write the result into `.d2a/docs/implementation/00_mini_scope.md`.
+   - `docs/architecture/00_overview.md`
+   - `docs/architecture/02_driver.md`
+   - `docs/architecture/03_core_objects.md`
+   - `docs/architecture/04_state_evolution.md`
+   - `docs/architecture/05_cooperation.md`
+   - `docs/architecture/06_constraints.md`
+7. Write the result into `docs/implementation/00_mini_scope.md`.
 8. Answer these atomic questions:
    - What single architecture idea must be preserved?
    - Which runnable 20 percent slice is enough to demonstrate it?
@@ -105,7 +105,7 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 10. Keep the scope small enough to support one first runnable slice.
 11. When the analysis draft is stable, call:
 
-   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index 0 --question-total 4 --next-step "Ask the first mini-scope confirmation question." --next-skill "d2a-mini-1-scope" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Mini-scope analysis complete; moving into confirmation questions."`
+   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index 0 --question-total 4 --next-step "Ask the first mini-scope confirmation question." --next-skill "d2a-mini-1-scope" --next-file "docs/implementation/00_mini_scope.md" --summary "Mini-scope analysis complete; moving into confirmation questions."`
 
 ## Phase 2: Confirmation Questions
 
@@ -121,7 +121,7 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
    - The `[next]` line should point to the post-question next skill/file.
 5. Before asking question `N`, call:
 
-   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index <N> --question-total 4 --next-step "Continue mini-scope confirmation questions." --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Mini-scope confirmation question <N> is active."`
+   `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index <N> --question-total 4 --next-step "Continue mini-scope confirmation questions." --next-skill "d2a-mini-2-design" --next-file "docs/implementation/01_mini_design.md" --summary "Mini-scope confirmation question <N> is active."`
 
 6. Present one question with multiple choices.
 7. Wait for the learner answer.
@@ -135,7 +135,7 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
    - keep the `Comprehension Score` under 100 Chinese characters
 10. At the end of the confirmation phase, call:
 
-    `d2a skill-state d2a-mini-1-scope --status completed --stage mini-derivation-prepared --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-mini-2-design." --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/01_mini_design.md" --summary "Completed mini-scope confirmation questions."`
+    `d2a skill-state d2a-mini-1-scope --status completed --stage mini-derivation-prepared --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-mini-2-design." --next-skill "d2a-mini-2-design" --next-file "docs/implementation/01_mini_design.md" --summary "Completed mini-scope confirmation questions."`
 
 11. Confirmation-question prompts, learner answers, evaluations, and explanations must be written to `.d2a/qa/<skill>.jsonl`, and must not be written into `docs/implementation/*.md` or `src/*`.
 

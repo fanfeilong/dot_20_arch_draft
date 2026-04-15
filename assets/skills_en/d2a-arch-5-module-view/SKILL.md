@@ -43,7 +43,7 @@ Rules:
 
 1. The body must use `- ` bullet lines, minimum 2 lines and maximum 4 lines.
 2. Each point must occupy exactly one line; do not write long paragraphs.
-3. Keep each line under about 140 characters; split lines when longer.
+3. Keep each line under 80 characters; split lines when longer.
 4. Avoid Markdown emphasis in body text (for example `` `...` `` or `**...**`).
 
 If the active repository is unknown, stop and ask the user which repository should be used.
@@ -58,7 +58,7 @@ When the current turn asks the user a question and waits for user input, the las
 
 1. After context is confirmed, call:
 
-   `d2a skill-state d2a-arch-5-module-view --status started --stage architecture-in-progress --phase atomic-question-alignment --question-index 0 --question-total 1 --next-step "Show atomic analysis questions and ask for one-time supplements (yes/no)." --next-skill "d2a-arch-5-module-view" --next-file ".d2a/docs/architecture/05_cooperation.md" --summary "Started atomic-question alignment for module-view."`
+   `d2a skill-state d2a-arch-5-module-view --status started --stage architecture-in-progress --phase atomic-question-alignment --question-index 0 --question-total 1 --next-step "Show atomic analysis questions and ask for one-time supplements (yes/no)." --next-skill "d2a-arch-5-module-view" --next-file "docs/architecture/05_cooperation.md" --summary "Started atomic-question alignment for module-view."`
 
 2. Before doing analysis, explicitly tell the user:
 
@@ -67,18 +67,18 @@ When the current turn asks the user a question and waits for user input, the las
 3. Allow only one supplement interaction in this phase:
    - If user answers `yes`, collect extra questions, merge them with the base atomic questions, then echo the merged list.
    - If user answers `no`, proceed with the base atomic questions.
-4. Do not write `.d2a/docs/architecture/05_cooperation.md` before user confirmation.
+4. Do not write `docs/architecture/05_cooperation.md` before user confirmation.
 5. After alignment is done, call:
 
-   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase analysis-generation --question-index 1 --question-total 1 --next-step "Start analysis-generation with merged atomic questions." --next-skill "d2a-arch-5-module-view" --next-file ".d2a/docs/architecture/05_cooperation.md" --summary "Atomic-question alignment completed for module-view."`
+   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase analysis-generation --question-index 1 --question-total 1 --next-step "Start analysis-generation with merged atomic questions." --next-skill "d2a-arch-5-module-view" --next-file "docs/architecture/05_cooperation.md" --summary "Atomic-question alignment completed for module-view."`
 
 ## Phase 2: Analysis Generation
 
 1. After context is confirmed, call:
 
-   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase analysis-generation --next-step "Compress the project into top-level modules and cooperation chains." --next-skill "d2a-arch-6-tradeoff-view" --next-file ".d2a/docs/architecture/05_cooperation.md" --summary "Started module-view analysis."`
+   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase analysis-generation --next-step "Compress the project into top-level modules and cooperation chains." --next-skill "d2a-arch-6-tradeoff-view" --next-file "docs/architecture/05_cooperation.md" --summary "Started module-view analysis."`
 
-2. Work from the real repository and write the result into `.d2a/docs/architecture/05_cooperation.md`.
+2. Work from the real repository and write the result into `docs/architecture/05_cooperation.md`.
 3. Answer these merged atomic questions (base + optional user supplements):
    - What are the three to six top-level modules?
    - What is the responsibility of each module?
@@ -92,7 +92,7 @@ When the current turn asks the user a question and waits for user input, the las
 5. Group files or packages by architectural responsibility, not by folder trivia.
 6. When the analysis draft is stable, call:
 
-   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "Ask the first module-view confirmation question." --next-skill "d2a-arch-5-module-view" --next-file ".d2a/docs/architecture/05_cooperation.md" --summary "Module-view analysis complete; moving into confirmation questions."`
+   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase confirmation-questions --question-index 0 --question-total 4 --next-step "Ask the first module-view confirmation question." --next-skill "d2a-arch-5-module-view" --next-file "docs/architecture/05_cooperation.md" --summary "Module-view analysis complete; moving into confirmation questions."`
 
 ## Phase 3: Confirmation Questions
 
@@ -108,7 +108,7 @@ When the current turn asks the user a question and waits for user input, the las
    - The `[next]` line should point to the post-question next skill/file.
 5. Before asking question `N`, call:
 
-   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "Continue module-view confirmation questions." --next-skill "d2a-arch-6-tradeoff-view" --next-file ".d2a/docs/architecture/06_constraints.md" --summary "Module-view confirmation question <N> is active."`
+   `d2a skill-state d2a-arch-5-module-view --status progress --stage architecture-in-progress --phase confirmation-questions --question-index <N> --question-total 4 --next-step "Continue module-view confirmation questions." --next-skill "d2a-arch-6-tradeoff-view" --next-file "docs/architecture/06_constraints.md" --summary "Module-view confirmation question <N> is active."`
 
 6. Present one question with multiple choices.
 7. Wait for the learner answer.
@@ -122,7 +122,7 @@ When the current turn asks the user a question and waits for user input, the las
    - keep the `Comprehension Score` under 100 Chinese characters
 10. At the end of the confirmation phase, call:
 
-    `d2a skill-state d2a-arch-5-module-view --status completed --stage architecture-in-progress --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-arch-6-tradeoff-view." --next-skill "d2a-arch-6-tradeoff-view" --next-file ".d2a/docs/architecture/06_constraints.md" --summary "Completed module-view confirmation questions."`
+    `d2a skill-state d2a-arch-5-module-view --status completed --stage architecture-in-progress --phase confirmation-questions --question-index 4 --question-total 4 --next-step "Move to d2a-arch-6-tradeoff-view." --next-skill "d2a-arch-6-tradeoff-view" --next-file "docs/architecture/06_constraints.md" --summary "Completed module-view confirmation questions."`
 
 11. Confirmation-question prompts, learner answers, evaluations, and explanations must be written to `.d2a/qa/<skill>.jsonl`, and must not be written into `docs/architecture/*.md`.
 

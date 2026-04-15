@@ -293,7 +293,7 @@ func RecordSkill(repoRoot string, update SkillUpdate) (Snapshot, error) {
 		s.NextSkill = update.NextSkill
 	}
 	if update.NextFile != "" {
-		s.NextFile = update.NextFile
+		s.NextFile = normalizeNextFile(repoRoot, update.NextFile)
 	}
 	if update.Decision != "" {
 		s.CurrentDecision = update.Decision
@@ -472,6 +472,58 @@ func historyPath(repoRoot string) string {
 	return filepath.Join(repoRoot, ".d2a", "history.jsonl")
 }
 
+func normalizeNextFile(repoRoot, raw string) string {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return ""
+	}
+	value = strings.ReplaceAll(value, "\\", "/")
+	value = strings.TrimPrefix(value, "./")
+	value = strings.TrimPrefix(value, ".d2a/")
+	value = strings.TrimPrefix(value, "/")
+	if mapped := mapToZhDocPathIfPresent(repoRoot, value); mapped != "" {
+		return mapped
+	}
+	return value
+}
+
+func mapToZhDocPathIfPresent(repoRoot, path string) string {
+	zhRoot := filepath.Join(repoRoot, "docs", "1.架构拆解")
+	if _, err := os.Stat(zhRoot); err != nil {
+		return ""
+	}
+	switch path {
+	case "docs/architecture/00_overview.md":
+		return "docs/1.架构拆解/00_总览.md"
+	case "docs/architecture/01_boundary.md":
+		return "docs/1.架构拆解/01_边界.md"
+	case "docs/architecture/02_driver.md":
+		return "docs/1.架构拆解/02_驱动.md"
+	case "docs/architecture/03_core_objects.md":
+		return "docs/1.架构拆解/03_核心对象.md"
+	case "docs/architecture/04_state_evolution.md":
+		return "docs/1.架构拆解/04_状态演化.md"
+	case "docs/architecture/05_cooperation.md":
+		return "docs/1.架构拆解/05_协作.md"
+	case "docs/architecture/06_constraints.md":
+		return "docs/1.架构拆解/06_约束.md"
+	case "docs/architecture/99_code_map.md":
+		return "docs/1.架构拆解/99_代码地图.md"
+	case "docs/implementation/00_mini_scope.md":
+		return "docs/2.mini实现/00_最小范围.md"
+	case "docs/implementation/01_mini_design.md":
+		return "docs/2.mini实现/01_最小设计.md"
+	case "docs/implementation/02_build_plan.md":
+		return "docs/2.mini实现/02_构建计划.md"
+	case "docs/implementation/03_test_plan.md":
+		return "docs/2.mini实现/03_测试计划.md"
+	case "docs/report/00_report_outline.md":
+		return "docs/3.报告/00_报告大纲.md"
+	default:
+		return ""
+	}
+}
+
 func ChallengeState(repoRoot string) (ChallengeSnapshot, error) {
 	repoRoot, err := filepath.Abs(repoRoot)
 	if err != nil {
@@ -520,7 +572,7 @@ func SkipChallenge(repoRoot, reason string) (Snapshot, error) {
 	s.ChallengeRecommendation = "skipped"
 	s.NextStep = "Proceed to d2a derive-mini."
 	s.NextSkill = "d2a-mini-1-scope"
-	s.NextFile = "docs/implementation/00_mini_scope.md"
+	s.NextFile = normalizeNextFile(repoRoot, "docs/implementation/00_mini_scope.md")
 	s.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 
 	if err := writeSnapshot(s); err != nil {
