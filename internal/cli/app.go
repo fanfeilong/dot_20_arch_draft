@@ -18,12 +18,14 @@ import (
 	"github.com/fanfeilong/dot_20_arch_draft/internal/server"
 	"github.com/fanfeilong/dot_20_arch_draft/internal/state"
 	"github.com/fanfeilong/dot_20_arch_draft/internal/tester"
+	"github.com/fanfeilong/dot_20_arch_draft/internal/updater"
 )
 
 const usage = `d2a initializes a repository-root workflow and installs built-in skills.
 
 Usage:
   d2a help
+  d2a -U | --update
   d2a init <target-repo-git-url> [--lang <zh|en>]
   d2a analyze [<target-repo>] [--repo <repo-dir>]
   d2a derive-mini [--repo <repo-dir>] [--skip-challenge-reason <text>]
@@ -34,6 +36,8 @@ Usage:
   d2a skill-state <skill-name> [--repo <repo-dir>] [--status <started|progress|completed>] [--stage <stage>] [--phase <phase>] [--question-index <n>] [--question-total <n>] [--question <text>] [--answer <text>] [--evaluation <correct|partial|incorrect>] [--explanation <text>] [--next-step <text>] [--next-skill <name>] [--next-file <path>] [--decision <label>] [--strength <strong|partial|weak>] [--recommendation <proceed|review|revisit architecture>] [--objection <text>] [--summary <text>]
   d2a version
 `
+
+var selfUpdate = updater.SelfUpdate
 
 type repoContext struct {
 	Name    string
@@ -62,6 +66,16 @@ func runWithIO(args []string, stdout io.Writer, version string) error {
 	case "help", "-h", "--help":
 		printUsage(stdout)
 		return nil
+	case "-U", "--update", "update":
+		if len(args) != 1 {
+			return errors.New("update requires: d2a -U")
+		}
+		updatedPath, err := selfUpdate()
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintf(stdout, "updated d2a binary: %s\n", updatedPath)
+		return err
 	case "version":
 		_, err := fmt.Fprintf(stdout, "%s\n", version)
 		return err

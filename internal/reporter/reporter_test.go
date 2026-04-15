@@ -65,6 +65,8 @@ func TestBuildReport(t *testing.T) {
 		filepath.Join("report", "data", "target.json"),
 		filepath.Join("report", "data", "tests.json"),
 		filepath.Join("report", "data", "challenge.json"),
+		filepath.Join("report", "brief.md"),
+		filepath.Join("report", "brief.html"),
 		filepath.Join("report", "vue-app", "package.json"),
 		filepath.Join("report", "vue-app", "src", "App.vue"),
 	} {
@@ -74,6 +76,26 @@ func TestBuildReport(t *testing.T) {
 	}
 	if !strings.Contains(string(content), "Challenge") {
 		t.Fatalf("report index does not contain challenge section")
+	}
+
+	briefMD, err := os.ReadFile(filepath.Join(repo, "report", "brief.md"))
+	if err != nil {
+		t.Fatalf("read report brief markdown: %v", err)
+	}
+	briefText := string(briefMD)
+	if !strings.Contains(briefText, "第 1 页：架构核心") {
+		t.Fatalf("brief markdown does not contain page-1 section")
+	}
+	if !strings.Contains(briefText, "第 2 页：Mini 实现简报") {
+		t.Fatalf("brief markdown does not contain page-2 section")
+	}
+
+	briefHTML, err := os.ReadFile(filepath.Join(repo, "report", "brief.html"))
+	if err != nil {
+		t.Fatalf("read report brief html: %v", err)
+	}
+	if !strings.Contains(string(briefHTML), "@page { size: A4;") {
+		t.Fatalf("brief html does not contain A4 print style")
 	}
 }
 

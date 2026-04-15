@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fanfeilong/dot_20_arch_draft/internal/state"
@@ -34,6 +35,11 @@ type summary struct {
 	TestDocs           []string `json:"test_docs"`
 	SourceDocs         []string `json:"source_docs"`
 	AvailableArtifacts []string `json:"available_artifacts"`
+}
+
+type reportPrefs struct {
+	Lang  string `json:"lang"`
+	Theme string `json:"theme"`
 }
 
 func BuildReport(repoRoot string) (string, error) {
@@ -94,6 +100,9 @@ func BuildReport(repoRoot string) (string, error) {
 	htmlPath := filepath.Join(reportDir, "index.html")
 	if err := os.WriteFile(htmlPath, []byte(reportHTML(s, challenge)), 0o644); err != nil {
 		return "", fmt.Errorf("write report html %s: %w", htmlPath, err)
+	}
+	if err := writeBriefArtifacts(repoRoot, s, manifest, challenge); err != nil {
+		return "", err
 	}
 	if err := ensureVueSkeleton(reportDir); err != nil {
 		return "", err
@@ -241,6 +250,8 @@ func reportIndex(s summary, challenge state.ChallengeSnapshot) string {
 - report/data/target.json
 - report/data/tests.json
 - report/data/challenge.json
+- report/brief.md
+- report/brief.html
 
 ## Next Step
 
@@ -259,6 +270,691 @@ Use these data files as the input contract for the future Vue report app and loc
 		bulletList(s.TestDocs),
 		bulletList(s.SourceDocs),
 	)
+}
+
+func writeBriefArtifacts(repoRoot string, s summary, manifest testManifest, challenge state.ChallengeSnapshot) error {
+	reportDir := filepath.Join(repoRoot, "report")
+	prefs := loadReportPrefs(repoRoot)
+	page1 := buildArchitecturePage(repoRoot)
+	page2 := buildMiniPage(repoRoot, manifest, challenge)
+
+	mdPath := filepath.Join(reportDir, "brief.md")
+	mdContent := buildBriefMarkdown(s, page1, page2, prefs)
+	if err := os.WriteFile(mdPath, []byte(mdContent), 0o644); err != nil {
+		return fmt.Errorf("write brief markdown %s: %w", mdPath, err)
+	}
+
+	htmlPath := filepath.Join(reportDir, "brief.html")
+	htmlContent := buildBriefHTML(s, page1, page2, prefs)
+	if err := os.WriteFile(htmlPath, []byte(htmlContent), 0o644); err != nil {
+		return fmt.Errorf("write brief html %s: %w", htmlPath, err)
+	}
+	return nil
+}
+
+func loadReportPrefs(repoRoot string) reportPrefs {
+	p := reportPrefs{
+		Lang:  "zh",
+		Theme: "ocean",
+	}
+	path := filepath.Join(repoRoot, ".d2a", "report_prefs.json")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return p
+	}
+	var raw reportPrefs
+	if err := json.Unmarshal(content, &raw); err != nil {
+		return p
+	}
+	lang := strings.ToLower(strings.TrimSpace(raw.Lang))
+	theme := strings.ToLower(strings.TrimSpace(raw.Theme))
+	switch lang {
+	case "zh", "en":
+		p.Lang = lang
+	}
+	switch theme {
+	case "ocean", "sunset", "slate":
+		p.Theme = theme
+	}
+	return p
+}
+
+type briefPageOne struct {
+	StateDiagram string
+	SixElements  [][2]string
+}
+
+type briefPageTwo struct {
+	TargetStack             string
+	ProviderSummary         string
+	TimeboxSummary          string
+	IntentSummary           string
+	RunnableSliceSummary    string
+	BuildSummary            string
+	TestEvidence            string
+	IntentionalOmissions    string
+	ChallengeRecommendation string
+}
+
+func buildArchitecturePage(repoRoot string) briefPageOne {
+	p := briefPageOne{
+		StateDiagram: extractMermaidStateDiagram(filepath.Join(repoRoot, "docs", "architecture", "04_state_evolution.md")),
+	}
+	if p.StateDiagram == "" {
+		p.StateDiagram = "stateDiagram-v2\n  [*] --> Unknown\n  Unknown --> Unknown: fill docs/architecture/04_state_evolution.md"
+	}
+	p.SixElements = [][2]string{
+		{"Boundary", summarizeDoc(filepath.Join(repoRoot, "docs", "architecture", "01_boundary.md"), 140)},
+		{"Driver", summarizeDoc(filepath.Join(repoRoot, "docs", "architecture", "02_driver.md"), 140)},
+		{"Core Objects", summarizeDoc(filepath.Join(repoRoot, "docs", "architecture", "03_core_objects.md"), 140)},
+		{"State Evolution", summarizeDoc(filepath.Join(repoRoot, "docs", "architecture", "04_state_evolution.md"), 140)},
+		{"Cooperation", summarizeDoc(filepath.Join(repoRoot, "docs", "architecture", "05_cooperation.md"), 140)},
+		{"Constraints", summarizeDoc(filepath.Join(repoRoot, "docs", "architecture", "06_constraints.md"), 140)},
+	}
+	return p
+}
+
+func buildMiniPage(repoRoot string, manifest testManifest, challenge state.ChallengeSnapshot) briefPageTwo {
+	stack, provider, timebox, intent := loadMiniGateSummary(filepath.Join(repoRoot, ".d2a", "mini_gate", "d2a-mini-1-scope.json"))
+	return briefPageTwo{
+		TargetStack:             defaultUnknown(stack),
+		ProviderSummary:         defaultUnknown(provider),
+		TimeboxSummary:          defaultUnknown(timebox),
+		IntentSummary:           defaultUnknown(intent),
+		RunnableSliceSummary:    summarizeDoc(filepath.Join(repoRoot, "docs", "implementation", "00_mini_scope.md"), 180),
+		BuildSummary:            summarizeDoc(filepath.Join(repoRoot, "docs", "implementation", "02_build_plan.md"), 180),
+		TestEvidence:            summarizeList(manifest.Outputs, 4),
+		IntentionalOmissions:    summarizeOmissions(filepath.Join(repoRoot, "docs", "implementation", "02_build_plan.md"), filepath.Join(repoRoot, "src", "ARCHITECTURE.md")),
+		ChallengeRecommendation: valueOrUnknown(challenge.Recommendation),
+	}
+}
+
+func buildBriefMarkdown(s summary, page1 briefPageOne, page2 briefPageTwo, prefs reportPrefs) string {
+	labels := briefLabels(prefs.Lang)
+	rows := make([]string, 0, len(page1.SixElements))
+	for _, pair := range page1.SixElements {
+		rows = append(rows, fmt.Sprintf("| %s | %s |", pair[0], sanitizeInline(pair[1])))
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "# %s\n\n", labels["brief_title"])
+	fmt.Fprintf(&b, "%s: %s\n\n", labels["target_repo"], s.TargetRepo)
+	fmt.Fprintf(&b, "## %s\n\n", labels["page1_title"])
+	fmt.Fprintf(&b, "### %s\n\n", labels["diagram_title"])
+	fmt.Fprintf(&b, "```mermaid\n%s\n```\n\n", page1.StateDiagram)
+	fmt.Fprintf(&b, "### %s\n\n", labels["six_elements"])
+	fmt.Fprintf(&b, "| %s | %s |\n| --- | --- |\n%s\n\n", labels["element"], labels["key_point"], strings.Join(rows, "\n"))
+	fmt.Fprintf(&b, "## %s\n\n", labels["page2_title"])
+	fmt.Fprintf(&b, "- %s: %s\n", labels["target_stack"], limitText(page2.TargetStack, 120))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["provider_gate"], limitText(page2.ProviderSummary, 180))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["timebox_gate"], limitText(page2.TimeboxSummary, 180))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["intent_gate"], limitText(page2.IntentSummary, 180))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["slice"], limitText(page2.RunnableSliceSummary, 220))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["build_summary"], limitText(page2.BuildSummary, 220))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["test_evidence"], limitText(page2.TestEvidence, 220))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["omissions"], limitText(page2.IntentionalOmissions, 220))
+	fmt.Fprintf(&b, "- %s: %s\n", labels["challenge_rec"], limitText(page2.ChallengeRecommendation, 80))
+	return b.String()
+}
+
+func buildBriefHTML(s summary, page1 briefPageOne, page2 briefPageTwo, prefs reportPrefs) string {
+	labels := briefLabels(prefs.Lang)
+	theme := briefTheme(prefs.Theme)
+	rows := make([]string, 0, len(page1.SixElements))
+	for _, pair := range page1.SixElements {
+		rows = append(rows, fmt.Sprintf("<tr><th scope=\"row\">%s</th><td>%s</td></tr>", escapeHTML(pair[0]), escapeHTML(limitText(pair[1], 170))))
+	}
+	return fmt.Sprintf(`<!doctype html>
+<html lang="%s">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>d2a Brief</title>
+  <style>
+    :root {
+      --ink: #1f2a30;
+      --subtle: #5f6d73;
+      --line: #d6dde2;
+      --panel: #ffffff;
+      --accent: %s;
+      --accent-soft: %s;
+      --paper: #f3f7f8;
+      --bg1: %s;
+      --bg2: %s;
+      --bar1: %s;
+      --bar2: %s;
+      --bar3: %s;
+    }
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 10%% -10%%, var(--bg1), transparent 60%%),
+        radial-gradient(1200px 500px at 95%% 0%%, var(--bg2), transparent 62%%),
+        var(--paper);
+      padding: 20px 0 40px;
+    }
+    .page {
+      width: 186mm;
+      min-height: 272mm;
+      margin: 0 auto 14px;
+      padding: 8mm;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 18px 40px rgba(22, 35, 42, 0.08);
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+    }
+    .page:last-child { page-break-after: auto; }
+    .page::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6mm;
+      background: linear-gradient(90deg, #136f63, #2a8f7e, #5da399);
+      background: linear-gradient(90deg, var(--bar1), var(--bar2), var(--bar3));
+      opacity: 0.9;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 7mm;
+      margin-bottom: 5mm;
+      gap: 8mm;
+    }
+    .kicker {
+      margin: 0;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    h1 {
+      margin: 2px 0 0;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: 0.01em;
+    }
+    .repo {
+      margin: 0;
+      color: var(--subtle);
+      font-size: 11px;
+      max-width: 60%%;
+      text-align: right;
+      word-break: break-word;
+    }
+    h2 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 9px;
+      margin-bottom: 8px;
+    }
+    .diagram pre {
+      margin: 0;
+      background: #f7fafb;
+      border: 1px solid #e2e9ed;
+      border-radius: 8px;
+      padding: 8px;
+      white-space: pre-wrap;
+      font-size: 10.5px;
+      line-height: 1.32;
+      max-height: 95mm;
+      overflow: hidden;
+      color: #20353b;
+    }
+    table {
+      width: 100%%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 11px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 6px 7px;
+      vertical-align: top;
+      line-height: 1.3;
+      text-align: left;
+    }
+    th[scope="row"] {
+      width: 28%%;
+      font-weight: 700;
+      background: var(--accent-soft);
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .mini-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px;
+      background: #fff;
+    }
+    .mini-item strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 11px;
+      color: #174d45;
+    }
+    .mini-item p {
+      margin: 0;
+      font-size: 10.5px;
+      line-height: 1.3;
+      color: #32424a;
+    }
+    .footer-note {
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--subtle);
+      text-align: right;
+    }
+    @media (max-width: 900px) {
+      body { padding: 0; background: var(--paper); }
+      .page {
+        width: 100%%;
+        min-height: auto;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        padding: 16px 14px 20px;
+      }
+      .page::before { height: 5px; }
+      .top {
+        margin-top: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .repo {
+        text-align: left;
+        max-width: 100%%;
+      }
+      .mini-grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page {
+        margin: 0;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <header class="top">
+      <div>
+        <p class="kicker">%s</p>
+        <h1>%s</h1>
+      </div>
+      <p class="repo">%s: %s</p>
+    </header>
+    <section class="card diagram">
+      <h2>%s</h2>
+      <pre>%s</pre>
+    </section>
+    <section class="card">
+      <h2>%s</h2>
+      <table>
+        <tbody>%s</tbody>
+      </table>
+    </section>
+    <div class="footer-note">%s</div>
+  </section>
+  <section class="page">
+    <header class="top">
+      <div>
+        <p class="kicker">%s</p>
+        <h1>%s</h1>
+      </div>
+      <p class="repo">%s: %s</p>
+    </header>
+    <section class="mini-grid">
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+      <article class="mini-item"><strong>%s</strong><p>%s</p></article>
+    </section>
+    <section class="card">
+      <h2>%s</h2>
+      <p>%s</p>
+    </section>
+    <div class="footer-note">%s</div>
+  </section>
+</body>
+</html>
+`,
+		escapeHTML(prefs.Lang),
+		escapeHTML(theme["accent"]),
+		escapeHTML(theme["accent_soft"]),
+		escapeHTML(theme["bg1"]),
+		escapeHTML(theme["bg2"]),
+		escapeHTML(theme["bar1"]),
+		escapeHTML(theme["bar2"]),
+		escapeHTML(theme["bar3"]),
+		escapeHTML(labels["kicker_arch"]),
+		escapeHTML(labels["page1_h1"]),
+		escapeHTML(labels["target_repo"]),
+		escapeHTML(s.TargetRepo),
+		escapeHTML(labels["diagram_title"]),
+		escapeHTML(limitText(page1.StateDiagram, 1400)),
+		escapeHTML(labels["six_elements"]),
+		strings.Join(rows, ""),
+		escapeHTML(labels["footer_arch"]),
+		escapeHTML(labels["kicker_mini"]),
+		escapeHTML(labels["page2_h1"]),
+		escapeHTML(labels["target_repo"]),
+		escapeHTML(s.TargetRepo),
+		escapeHTML(labels["target_stack"]),
+		escapeHTML(limitText(page2.TargetStack, 120)),
+		escapeHTML(labels["provider_gate"]),
+		escapeHTML(limitText(page2.ProviderSummary, 180)),
+		escapeHTML(labels["timebox_gate"]),
+		escapeHTML(limitText(page2.TimeboxSummary, 180)),
+		escapeHTML(labels["intent_gate"]),
+		escapeHTML(limitText(page2.IntentSummary, 180)),
+		escapeHTML(labels["slice"]),
+		escapeHTML(limitText(page2.RunnableSliceSummary, 220)),
+		escapeHTML(labels["build_summary"]),
+		escapeHTML(limitText(page2.BuildSummary, 220)),
+		escapeHTML(labels["test_evidence"]),
+		escapeHTML(limitText(page2.TestEvidence, 220)),
+		escapeHTML(labels["omissions"]),
+		escapeHTML(limitText(page2.IntentionalOmissions, 220)),
+		escapeHTML(labels["challenge_rec"]),
+		escapeHTML(limitText(page2.ChallengeRecommendation, 80)),
+		escapeHTML(labels["footer_mini"]),
+	)
+}
+
+func briefLabels(lang string) map[string]string {
+	if lang == "en" {
+		return map[string]string{
+			"brief_title":   "d2a Brief (2-Page A4)",
+			"target_repo":   "Target repo",
+			"page1_title":   "Page 1: Architecture Core",
+			"diagram_title": "State Machine Diagram",
+			"six_elements":  "Six Elements (Compact)",
+			"element":       "Element",
+			"key_point":     "Key Point",
+			"page2_title":   "Page 2: Mini Implementation Brief",
+			"target_stack":  "Target stack",
+			"provider_gate": "Provider gate",
+			"timebox_gate":  "Timebox gate",
+			"intent_gate":   "Intent gate",
+			"slice":         "Runnable 20% slice",
+			"build_summary": "Build summary",
+			"test_evidence": "Test evidence",
+			"omissions":     "Intentional omissions",
+			"challenge_rec": "Challenge recommendation",
+			"kicker_arch":   "d2a architecture brief · page 1",
+			"page1_h1":      "Architecture Core",
+			"footer_arch":   "d2a · architecture skeleton snapshot",
+			"kicker_mini":   "d2a mini brief · page 2",
+			"page2_h1":      "Mini Implementation Brief",
+			"footer_mini":   "d2a · mini delivery snapshot",
+		}
+	}
+	return map[string]string{
+		"brief_title":   "d2a 简报（2 页 A4）",
+		"target_repo":   "目标仓库",
+		"page1_title":   "第 1 页：架构核心",
+		"diagram_title": "状态机图",
+		"six_elements":  "六要素（极简）",
+		"element":       "要素",
+		"key_point":     "关键点",
+		"page2_title":   "第 2 页：Mini 实现简报",
+		"target_stack":  "目标技术栈",
+		"provider_gate": "Provider Gate",
+		"timebox_gate":  "Timebox Gate",
+		"intent_gate":   "Intent Gate",
+		"slice":         "可运行 20%% 切片",
+		"build_summary": "构建摘要",
+		"test_evidence": "测试证据",
+		"omissions":     "刻意未实现项",
+		"challenge_rec": "挑战建议",
+		"kicker_arch":   "d2a 架构简报 · 第 1 页",
+		"page1_h1":      "架构核心",
+		"footer_arch":   "d2a · 架构骨架快照",
+		"kicker_mini":   "d2a mini 简报 · 第 2 页",
+		"page2_h1":      "Mini 实现简报",
+		"footer_mini":   "d2a · mini 交付快照",
+	}
+}
+
+func briefTheme(name string) map[string]string {
+	switch name {
+	case "sunset":
+		return map[string]string{
+			"accent":      "#a64b2a",
+			"accent_soft": "#fbe9df",
+			"bg1":         "#f4d9c8",
+			"bg2":         "#efe1b9",
+			"bar1":        "#a64b2a",
+			"bar2":        "#c06a3f",
+			"bar3":        "#d28c54",
+		}
+	case "slate":
+		return map[string]string{
+			"accent":      "#2f4a5f",
+			"accent_soft": "#e8eef3",
+			"bg1":         "#dbe3ea",
+			"bg2":         "#d8d6df",
+			"bar1":        "#2f4a5f",
+			"bar2":        "#44657f",
+			"bar3":        "#5d829f",
+		}
+	default:
+		return map[string]string{
+			"accent":      "#136f63",
+			"accent_soft": "#e7f4f1",
+			"bg1":         "#dbeef0",
+			"bg2":         "#f2e9dc",
+			"bar1":        "#136f63",
+			"bar2":        "#2a8f7e",
+			"bar3":        "#5da399",
+		}
+	}
+}
+
+func extractMermaidStateDiagram(path string) string {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	text := string(content)
+	const open = "```mermaid"
+	start := strings.Index(text, open)
+	if start < 0 {
+		return ""
+	}
+	rest := text[start+len(open):]
+	end := strings.Index(rest, "```")
+	if end < 0 {
+		return ""
+	}
+	return strings.TrimSpace(rest[:end])
+}
+
+func summarizeDoc(path string, maxChars int) string {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return "unknown"
+	}
+	lines := strings.Split(string(content), "\n")
+	parts := make([]string, 0, 3)
+	for _, raw := range lines {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "```") {
+			continue
+		}
+		line = strings.TrimLeft(line, "-*0123456789. ")
+		if line == "" {
+			continue
+		}
+		parts = append(parts, line)
+		if len(parts) >= 2 {
+			break
+		}
+	}
+	if len(parts) == 0 {
+		return "unknown"
+	}
+	return limitText(strings.Join(parts, " ; "), maxChars)
+}
+
+func loadMiniGateSummary(path string) (stack, provider, timebox, intent string) {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return "", "", "", ""
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(content, &raw); err != nil {
+		return "", "", "", ""
+	}
+
+	stack = firstString(raw, "stack", "final_stack", "selected_stack", "target_stack", "tech_stack")
+	provider = firstString(raw, "provider", "provider_match", "provider_decision")
+	timebox = firstString(raw, "timebox", "timebox_budget", "timebox_decision")
+	intent = firstString(raw, "intent", "intent_anchor", "intent_decision")
+	if provider == "" || timebox == "" || intent == "" {
+		parts := collectStringPairs(raw, 8)
+		if provider == "" {
+			provider = findPair(parts, "provider")
+		}
+		if timebox == "" {
+			timebox = findPair(parts, "timebox")
+		}
+		if intent == "" {
+			intent = findPair(parts, "intent")
+		}
+		if stack == "" {
+			stack = findPair(parts, "stack")
+		}
+	}
+	return stack, provider, timebox, intent
+}
+
+func firstString(data map[string]any, keys ...string) string {
+	for _, key := range keys {
+		v, ok := data[key]
+		if !ok {
+			continue
+		}
+		if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
+			return strings.TrimSpace(s)
+		}
+	}
+	return ""
+}
+
+func collectStringPairs(data map[string]any, limit int) []string {
+	keys := make([]string, 0, len(data))
+	for key := range data {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	parts := make([]string, 0, limit)
+	for _, key := range keys {
+		if len(parts) >= limit {
+			break
+		}
+		v := data[key]
+		s, ok := v.(string)
+		if !ok {
+			continue
+		}
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		parts = append(parts, fmt.Sprintf("%s=%s", key, s))
+	}
+	return parts
+}
+
+func findPair(parts []string, needle string) string {
+	for _, p := range parts {
+		if strings.Contains(strings.ToLower(p), needle) {
+			return p
+		}
+	}
+	return ""
+}
+
+func summarizeOmissions(primaryPath, fallbackPath string) string {
+	primary := summarizeDoc(primaryPath, 220)
+	if primary != "unknown" {
+		return primary
+	}
+	return summarizeDoc(fallbackPath, 220)
+}
+
+func summarizeList(items []string, maxItems int) string {
+	if len(items) == 0 {
+		return "unknown"
+	}
+	if len(items) > maxItems {
+		items = items[:maxItems]
+	}
+	return strings.Join(items, ", ")
+}
+
+func sanitizeInline(s string) string {
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "|", "/")
+	return strings.TrimSpace(s)
+}
+
+func limitText(s string, maxChars int) string {
+	runes := []rune(strings.TrimSpace(s))
+	if len(runes) <= maxChars || maxChars <= 0 {
+		if len(runes) == 0 {
+			return "unknown"
+		}
+		return string(runes)
+	}
+	return string(runes[:maxChars-1]) + "…"
+}
+
+func defaultUnknown(s string) string {
+	if strings.TrimSpace(s) == "" {
+		return "unknown"
+	}
+	return strings.TrimSpace(s)
+}
+
+func escapeHTML(s string) string {
+	replacer := strings.NewReplacer(
+		"&", "&amp;",
+		"<", "&lt;",
+		">", "&gt;",
+		`"`, "&quot;",
+		"'", "&#39;",
+	)
+	return replacer.Replace(s)
 }
 
 func bulletList(items []string) string {

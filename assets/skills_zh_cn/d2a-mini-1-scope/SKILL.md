@@ -45,6 +45,9 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 在 1 小时演讲场景中，mini 阶段必须先通过以下三道 Gate，再进入实现细节：
 
 1. Provider Gate（技术栈）
+   - 先做 Human-in-the-loop 技术栈确认：`当前建议技术栈是 <stack>，是否需要切换？（是/否）`。
+   - 若用户答 `是`，只进行一次补充确认：`请给出要切换到的技术栈`，并以用户输入为准。
+   - 若用户答 `否`，沿用建议技术栈。
    - 先识别目标仓库技术栈并匹配内置 provider。
    - 若命中 provider，优先采用 provider 的最小实现方案。
    - 若未命中，退回通用最小方案（单主路径、低依赖、可运行）。
@@ -62,27 +65,31 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
    `d2a skill-state d2a-mini-1-scope --status started --stage mini-derivation-prepared --phase analysis-generation --next-step "选择要保留的单一架构意图。" --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Started mini-scope derivation."`
 
 2. 将该技能视为 Codex 中 mini 实现阶段的用户入口。
-3. 先执行三道 Gate，输出本轮 gate 结论（provider 命中情况、timebox 预算、intent 锚点）。
-4. 若实现规划文件尚未准备好，在产出内容前调用 `d2a derive-mini`。
-5. 读取：
+3. 先执行一次 Human-in-the-loop 技术栈确认并回显结论：
+   - 先给出建议技术栈，再询问是否切换（是/否）。
+   - 用户最多补充一次替代技术栈。
+   - 将最终技术栈写入 `.d2a/mini_gate/d2a-mini-1-scope.json`，并在 `d2a skill-state` 的 `--summary` 中记录 `stack=<...>, changed=<yes|no>`。
+4. 再执行三道 Gate，输出本轮 gate 结论（provider 命中情况、timebox 预算、intent 锚点）。
+5. 若实现规划文件尚未准备好，在产出内容前调用 `d2a derive-mini`。
+6. 读取：
    - `.d2a/docs/architecture/00_overview.md`
    - `.d2a/docs/architecture/02_driver.md`
    - `.d2a/docs/architecture/03_core_objects.md`
    - `.d2a/docs/architecture/04_state_evolution.md`
    - `.d2a/docs/architecture/05_cooperation.md`
    - `.d2a/docs/architecture/06_constraints.md`
-6. 将结果写入 `.d2a/docs/implementation/00_mini_scope.md`.
-7. 回答以下原子问题：
+7. 将结果写入 `.d2a/docs/implementation/00_mini_scope.md`.
+8. 回答以下原子问题：
    - 必须保留的单一架构意图是什么？
    - Which 可运行的 20% 切片 is enough to demonstrate it?
    - mini 版本将有意省略什么？
    - 哪种技术栈应与原项目保持一致？
-8. 初稿完成后，强制执行三轮修订：
+9. 初稿完成后，强制执行三轮修订：
    - 压缩修订
    - 去术语修订
    - 口语化简化修订
-9. 范围需足够小，以支持首个可运行切片。
-10. 当分析草稿稳定后，调用：
+10. 范围需足够小，以支持首个可运行切片。
+11. 当分析草稿稳定后，调用：
 
    `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index 0 --question-total 4 --next-step "开始第 1 题 mini-scope 确认题。" --next-skill "d2a-mini-1-scope" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Mini-scope analysis complete; moving into confirmation questions."`
 
@@ -134,6 +141,6 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 
 ## 持久化（.d2a）
 
-- Provider/Timebox/Intent gate 决策写入 `.d2a/mini_gate/d2a-mini-1-scope.json`。
+- Provider/Timebox/Intent gate 决策与最终确认技术栈写入 `.d2a/mini_gate/d2a-mini-1-scope.json`。
 - 确认题题干、用户答案、判定、解释写入 `.d2a/qa/<skill>.jsonl`。
 - 简短理解回顾与`理解度打分`写入 `.d2a/qa/<skill>.jsonl`。

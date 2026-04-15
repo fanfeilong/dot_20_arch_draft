@@ -45,6 +45,9 @@ If the active repository is unknown, stop and ask the user which repository shou
 In a 1-hour talk setting, the mini stage must pass these gates before implementation detail:
 
 1. Provider Gate (stack)
+   - Start with a human-in-the-loop stack confirmation: `Current proposed stack is <stack>; do you want to switch? (yes/no)`.
+   - If user answers `yes`, ask one follow-up only: `Which stack should we switch to?`, and use that answer as final.
+   - If user answers `no`, keep the proposed stack.
    - Detect the target stack and match a built-in provider first.
    - If matched, use the provider's minimal implementation plan by default.
    - If not matched, use a generic minimal fallback (single happy path, low dependency, runnable).
@@ -62,27 +65,31 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
    `d2a skill-state d2a-mini-1-scope --status started --stage mini-derivation-prepared --phase analysis-generation --next-step "Choose the single architecture idea to preserve." --next-skill "d2a-mini-2-design" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Started mini-scope derivation."`
 
 2. Treat this skill as the user-facing entry for the mini-implementation stage inside Codex.
-3. Execute the three gates first and output gate conclusions (provider match, timebox, intent anchors).
-4. If implementation planning files have not yet been prepared, call `d2a derive-mini` before producing content.
-5. Read:
+3. Run one human-in-the-loop stack confirmation first and echo the decision:
+   - show proposed stack, then ask whether to switch (yes/no)
+   - allow one supplement turn for the replacement stack
+   - persist final stack into `.d2a/mini_gate/d2a-mini-1-scope.json`, and record `stack=<...>, changed=<yes|no>` in `d2a skill-state --summary`
+4. Execute the three gates and output gate conclusions (provider match, timebox, intent anchors).
+5. If implementation planning files have not yet been prepared, call `d2a derive-mini` before producing content.
+6. Read:
    - `.d2a/docs/architecture/00_overview.md`
    - `.d2a/docs/architecture/02_driver.md`
    - `.d2a/docs/architecture/03_core_objects.md`
    - `.d2a/docs/architecture/04_state_evolution.md`
    - `.d2a/docs/architecture/05_cooperation.md`
    - `.d2a/docs/architecture/06_constraints.md`
-6. Write the result into `.d2a/docs/implementation/00_mini_scope.md`.
-7. Answer these atomic questions:
+7. Write the result into `.d2a/docs/implementation/00_mini_scope.md`.
+8. Answer these atomic questions:
    - What single architecture idea must be preserved?
    - Which runnable 20 percent slice is enough to demonstrate it?
    - What will the mini version intentionally omit?
    - Which stack should stay aligned with the original project?
-8. After the first draft, force three correction passes:
+9. After the first draft, force three correction passes:
    - compression pass
    - de-jargon pass
    - conversational simplification pass
-9. Keep the scope small enough to support one first runnable slice.
-10. When the analysis draft is stable, call:
+10. Keep the scope small enough to support one first runnable slice.
+11. When the analysis draft is stable, call:
 
    `d2a skill-state d2a-mini-1-scope --status progress --stage mini-derivation-prepared --phase confirmation-questions --question-index 0 --question-total 4 --next-step "Ask the first mini-scope confirmation question." --next-skill "d2a-mini-1-scope" --next-file ".d2a/docs/implementation/00_mini_scope.md" --summary "Mini-scope analysis complete; moving into confirmation questions."`
 
@@ -134,6 +141,6 @@ In a 1-hour talk setting, the mini stage must pass these gates before implementa
 
 ## Persistence (.d2a)
 
-- Provider/Timebox/Intent gate decisions -> `.d2a/mini_gate/d2a-mini-1-scope.json`.
+- Provider/Timebox/Intent gate decisions and final confirmed stack -> `.d2a/mini_gate/d2a-mini-1-scope.json`.
 - Confirmation prompts, learner answers, evaluations, explanations -> `.d2a/qa/<skill>.jsonl`.
 - Short comprehension summary and `Comprehension Score` -> `.d2a/qa/<skill>.jsonl`.

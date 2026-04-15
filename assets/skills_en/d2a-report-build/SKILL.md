@@ -47,8 +47,20 @@ If the active repository is unknown, stop and ask the user which repository shou
 7. Use `.d2a/docs/`, `.d2a/src/`, and `.d2a/tests/` as the content sources behind the report.
 8. Keep the report focused on architecture, mini implementation, tests, and the teaching narrative.
 9. Treat `.d2a/report/data/*.json` as the stable input contract for the future Vue app.
-10. Refine `.d2a/report/index.md` or future report assets without changing the stage contract.
-11. When this pass is complete, call `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Review the local report or run d2a serve." --summary "Completed report-build work."`.
+10. You must generate two-page brief artifacts: `report/brief.md` and `report/brief.html` (A4 print style).
+11. If any DoD item is missing, do not mark this skill as completed.
+12. When this pass is complete, call `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Review the local report or run d2a serve." --summary "Completed report-build work with 2-page A4 brief."`.
+
+## DoD (All Required)
+
+1. Strict two-page A4 structure:
+   - Page 1: one state-machine/architecture diagram + compact six-element table (boundary/driver/core objects/state machine/module cooperation/constraints).
+   - Page 2: mini implementation brief (stack, 20%% slice, build summary, test evidence, intentional omissions).
+2. If content is too long, compress it; never spill to a third page.
+3. Keep it teachable and concise; avoid long narrative paragraphs.
+4. Required output files:
+   - `report/brief.md`
+   - `report/brief.html`
 
 ## Turn-End Continuation Rule
 
@@ -56,8 +68,12 @@ If the active repository is unknown, stop and ask the user which repository shou
 2. End the reply with: `Continue with $d2a-step`.
 
 
-## Output
+## Output (Artifacts)
 
-- Report summary
-- Report data alignment
-- Next presentation improvements
+- `report/brief.md` (structured 2-page A4 brief)
+- `report/brief.html` (printable 2-page A4 brief)
+- `report/index.md` (report index)
+
+## Persistence (.d2a)
+
+- Skill progression and next-step routing are persisted through `d2a skill-state` into `.d2a/state.json` and `.d2a/history.jsonl`.

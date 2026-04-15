@@ -47,8 +47,20 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 7. 使用 `.d2a/docs/`、`.d2a/src/`、`.d2a/tests/` 作为报告内容来源。
 8. 报告聚焦架构、mini 实现、测试与教学叙事。
 9. 将 `.d2a/report/data/*.json` 视为未来 Vue 应用的稳定输入契约。
-10. 可完善 `.d2a/report/index.md` 或后续报告资产，但不要改变阶段契约。
-11. 本轮完成后，调用 `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Review the local report or run d2a serve." --summary "Completed report-build work."`.
+10. 必须生成双页简报产物：`report/brief.md` 与 `report/brief.html`（A4 打印样式）。
+11. 若任一 DoD 未满足，不得标记 completed。
+12. 本轮完成后，调用 `d2a skill-state d2a-report-build --status completed --stage report-ready --phase analysis-generation --next-step "Review the local report or run d2a serve." --summary "Completed report-build work with 2-page A4 brief."`.
+
+## DoD（必须全部满足）
+
+1. 严格双页结构（2 张 A4）：
+   - 第 1 页：1 张状态机/架构图 + 6 要素极简表（边界/驱动/核心对象/状态机/模块协作/约束）。
+   - 第 2 页：mini 实现简报（技术栈、20%%切片、构建摘要、测试证据、刻意未实现项）。
+2. 内容超长时必须压缩，不允许扩展到第 3 页。
+3. 报告必须是“可讲解提纲”，禁止长段落灌水。
+4. 产物文件必须存在：
+   - `report/brief.md`
+   - `report/brief.html`
 
 ## 回合结束续接规则
 
@@ -56,8 +68,12 @@ state: <当前骨架位置> → <下一骨架位置> · 继续请使用 $d2a-ste
 2. 回复末尾必须输出：`继续请使用 $d2a-step`。
 
 
-## 输出
+## 输出（产物）
 
-- 报告摘要
-- 报告数据一致性
-- 下一步展示改进点
+- `report/brief.md`（双页 A4 结构化简报）
+- `report/brief.html`（可打印 A4 双页简报）
+- `report/index.md`（总览索引）
+
+## 持久化（.d2a）
+
+- 本技能的推进状态、下一步路由通过 `d2a skill-state` 持久化到 `.d2a/state.json` 与 `.d2a/history.jsonl`。

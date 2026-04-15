@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +31,45 @@ func TestVersion(t *testing.T) {
 
 	if got := out.String(); got != "v0.0.1\n" {
 		t.Fatalf("unexpected output: %q", got)
+	}
+}
+
+func TestUpdateShortcut(t *testing.T) {
+	var out bytes.Buffer
+	previous := selfUpdate
+	t.Cleanup(func() {
+		selfUpdate = previous
+	})
+
+	selfUpdate = func() (string, error) {
+		return "/usr/local/bin/d2a", nil
+	}
+
+	if err := runWithIO([]string{"-U"}, &out, "v0.0.1"); err != nil {
+		t.Fatalf("runWithIO returned error: %v", err)
+	}
+	if got := out.String(); !strings.Contains(got, "updated d2a binary: /usr/local/bin/d2a") {
+		t.Fatalf("unexpected output: %q", got)
+	}
+}
+
+func TestUpdateShortcutReturnsUpdaterError(t *testing.T) {
+	var out bytes.Buffer
+	previous := selfUpdate
+	t.Cleanup(func() {
+		selfUpdate = previous
+	})
+
+	selfUpdate = func() (string, error) {
+		return "", errors.New("boom")
+	}
+
+	err := runWithIO([]string{"-U"}, &out, "v0.0.1")
+	if err == nil {
+		t.Fatalf("expected update error")
+	}
+	if !strings.Contains(err.Error(), "boom") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
